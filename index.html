@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beni Life Game</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="photo.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="modern.css"><link rel="stylesheet" href="trail-upgrades.css"></head>
+<body><main class="shell">
+  <header><div><p class="eyebrow">HOME &amp; TRAIL</p><h1>Beni Life Game</h1></div><div class="money"><span>COINS</span> <b id="coins">20</b></div></header>
+  <nav class="tabs"><button id="homeTab" class="active">Beni’s Home</button><button id="runTab">Treat Trail</button></nav>
+  <section id="homeScene" class="scene home">
+    <div class="stats"><div>Hunger <span><i id="hunger"></i></span></div><div>Cleanliness <span><i id="clean"></i></span></div><div>Happiness <span><i id="happy"></i></span></div></div>
+    <div id="room" class="room room-pink"><div id="decorBack" class="decor-back"></div><div id="beni" class="beni"><span class="love">♡　♥　♡</span><span id="hat"></span><img src="beni.png" alt="Beni the Coton de Tuléar"><small>BENI</small><span id="outfit"></span></div><div id="decorSide" class="decor-side"></div><div class="rug"></div></div>
+    <div class="actions"><button data-care="feed">Feed</button><button data-care="wash">Wash</button><button data-care="play">Play</button><button data-care="sleep">Rest</button></div>
+    <div class="shop"><h2>Beni’s Boutique</h2><div id="shopItems" class="shop-items"></div></div>
+  </section>
+  <section id="runScene" class="scene run hidden">
+    <div class="run-hud"><span>Distance <b id="distance">0</b>m</span><span>Level <b id="runLevel">1</b></span><span>Treats <b id="bones">0</b></span><span>Health <b id="lives">● ● ●</b></span></div>
+    <canvas id="game" width="900" height="430" aria-label="Beni obstacle course"></canvas>
+    <div id="runOverlay" class="overlay"><img class="big beni-photo" src="beni.png" alt="Beni"><h2>Ready, Beni?</h2><p class="trail-rules">☁️ Don’t eat the clouds! &nbsp; 🍪 Eat the dog cookies!</p><p id="levelGoal">Clear the course to unlock the next level.</p><div class="selectors"><label class="difficulty">Level <select id="courseLevel"></select></label><label class="difficulty">Mode <select id="difficulty"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label></div><button id="startRun">Start level 🐾</button></div>
+    <div class="run-controls"><button id="jump">JUMP</button><button id="duck">DUCK</button><button id="leaveRun">RETURN HOME</button></div><p class="tip">Press <b>Space / ↑ twice</b> to double-jump and <b>↓</b> to duck.</p>
+  </section>
+  <div id="toast" class="toast"></div>
+</main><script src="game.js"></script></body></html>

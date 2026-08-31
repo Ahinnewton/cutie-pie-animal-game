@@ -1,0 +1,9 @@
+.overlay .trail-rules {
+  margin: 7px 0 12px;
+  padding: 7px 12px;
+  border-radius: 14px;
+  background: #fff;
+  color: #b64075;
+  font-size: 1.08rem;
+  font-weight: 900;
+}

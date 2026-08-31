@@ -1,0 +1,51 @@
+:root {
+  color: #51483f;
+  font-family: Inter, Avenir, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(145deg, #f2ece2, #e4d7c5 58%, #cbb89e);
+}
+
+.eyebrow { color: #9b7d5d; letter-spacing: 3px; font-size: .7rem; }
+h1 { color: #443b32; letter-spacing: -1.5px; text-shadow: none; font-weight: 650; }
+.money { background: #fffdf8; border: 1px solid #dbcdb9; box-shadow: 0 3px 10px #5f4b3420; }
+.tabs button { color: #786a5b; background: #e8ddce; border-radius: 12px 12px 0 0; }
+.tabs button.active { color: #493e34; background: #fffdf8; }
+.scene { background: #fffdf8; border: 1px solid #d8c9b5; border-top: 0; border-radius: 0 0 18px 18px; box-shadow: 0 14px 35px #59462f2c; }
+.stats { background: #fffdf8; border-bottom: 1px solid #e4d9ca; }
+.stats div { color: #62574d; }.stats span { background: #e8dfd3; }
+.stats i { background: linear-gradient(90deg, #b99368, #dbc19e); }
+.room { background: linear-gradient(#f5eddf 0 72%, #cdb795 72%); }
+.room-blue { background: linear-gradient(#e7eee9 0 72%, #bcae98 72%); }
+.room-space { background: linear-gradient(#70685f 0 72%, #9a8973 72%); }
+.room-space::before { opacity: .4; filter: sepia(1); }
+.rug { background: #ad896a66; }
+.beni img, .beni-photo { border-color: #fffdf8; box-shadow: 0 8px 22px #62503d38; }
+.love { position: absolute; left: 50%; top: -27px; translate: -50%; width: 145px; color: #a77d68; font-size: 1.3rem; text-align: center; letter-spacing: 3px; animation: love-float 1.3s ease-in-out infinite alternate; z-index: 4; }
+@keyframes love-float { to { transform: translateY(-7px); opacity: .65; } }
+.actions button, .overlay button, .run-controls button {
+  color: #fffdf8;
+  background: #8c7358;
+  border: 1px solid #725d48;
+  border-radius: 9px;
+  box-shadow: 0 3px 0 #654f3b;
+}
+#leaveRun { color: #594b3f; background: #eee4d6; border-color: #c4b198; box-shadow: 0 3px 0 #b29d82; }
+.shop h2 { color: #4d4339; font-weight: 600; }
+.shop button { color: #5b4d40; background: #faf6ef; border: 1px solid #d9cab5; border-radius: 9px; }
+.shop button.owned { background: #e5e4d5; border-color: #aaa688; }
+.run { background: #eee5d7; }
+.run-hud { color: #5f5143; background: #fffdf8; border-bottom: 1px solid #ded2c1; }
+canvas { background: linear-gradient(#dedfd5 0 72%, #b8ac91 72%); }
+.overlay { background: #f8f3e9dc; backdrop-filter: blur(7px); }
+.overlay h2 { color: #4b4036; font-weight: 600; }
+.difficulty { display: flex; align-items: center; gap: 9px; margin: 3px 0 14px; color: #665748; font-size: .85rem; font-weight: 700; }
+.selectors { display: flex; gap: 16px; }
+.difficulty select { padding: 7px 28px 7px 10px; color: #51463b; background: #fffdf8; border: 1px solid #cbbbA4; border-radius: 7px; font: inherit; }
+.tip { color: #766656; }.toast { color: #504337; background: #fffdf8; border: 1px solid #cbb89e; border-radius: 10px; box-shadow: 0 8px 24px #58463040; }
+
+@media (max-width: 560px) {
+  .scene { border-radius: 0 0 13px 13px; }
+  .selectors { gap: 7px; }
+}

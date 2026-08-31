@@ -1,0 +1,31 @@
+.beni {
+  width: 175px;
+  height: 175px;
+  bottom: 48px;
+  font-size: 0;
+}
+
+.beni img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 6px solid white;
+  border-radius: 50%;
+}
+
+.beni-photo {
+  width: 112px;
+  height: 112px;
+  object-fit: cover;
+  border: 6px solid white;
+  border-radius: 50%;
+  box-shadow: 0 8px 18px #694f6266;
+}
+
+.overlay img.big { font-size: 0; }
+.overlay h2 { margin-top: 5px; }
+
+@media (max-width: 560px) {
+  .beni { width: 145px; height: 145px; }
+  .beni-photo { width: 88px; height: 88px; }
+}
