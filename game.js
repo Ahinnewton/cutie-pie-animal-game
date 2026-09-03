@@ -29,7 +29,7 @@ function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happ
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
 function resetRun(){difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=m.start+(runLevel-1)*1.25;distance=0;bones=0;combo=0;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
 function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#cloudHits').textContent=cloudHits;const max=modes[difficulty]?.hearts||3;$('#lives').textContent='● '.repeat(lives)+'○ '.repeat(Math.max(0,max-lives));$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
-function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-30;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
+function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
 function spawnThing(){const r=Math.random();if(runLevel>=3&&r<.07)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<.12)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.6)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.82)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
@@ -122,7 +122,7 @@ function loop(){
   frame++;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
   const interval=Math.max(24,Math.floor((94-speed*2.7-runLevel*5)*m.spawn));
   if(frame%interval===0){spawnThing();const comboChance=Math.max(0,(runLevel-1)*.09);if(Math.random()<comboChance)setTimeout(()=>running&&!paused&&spawnThing(),230);if(runLevel>=5&&Math.random()<.18)setTimeout(()=>running&&!paused&&spawnThing(),440)}
-  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10));beni.vy+=4;beni.y+=beni.vy;
+  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10));beni.vy+=1.6;beni.y+=beni.vy;
   if(beni.y>=330){beni.y=330;beni.vy=0;beni.ground=true;beni.jumps=0}
   const box={x:beni.x+8,y:beni.y+(ducking?15:-35),w:52,h:ducking?35:62};
   things.forEach(t=>{t.x-=speed;if(t.hit||!collide(box,t))return;t.hit=true;
