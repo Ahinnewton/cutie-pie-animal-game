@@ -7,3 +7,78 @@
   font-size: 1.08rem;
   font-weight: 900;
 }
+
+.run .overlay {
+  inset: 43px 0 0;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.overlay .home-hint {
+  position: relative;
+  margin: -4px 0 9px;
+  padding: 10px 16px;
+  border: 3px solid #f5a8c5;
+  border-radius: 22px;
+  background: #fff8fc;
+  color: #a44770;
+  box-shadow: 0 5px 0 #efd0df, 0 9px 18px #9e638329;
+  font-family: "Comic Sans MS", "Arial Rounded MT Bold", ui-rounded, cursive;
+  font-size: clamp(.78rem, 2vw, 1rem);
+  line-height: 1.25;
+  transform: rotate(-1deg);
+}
+
+.overlay .home-hint::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 48%;
+  width: 18px;
+  height: 18px;
+  background: #fff8fc;
+  border-left: 3px solid #f5a8c5;
+  border-top: 3px solid #f5a8c5;
+  transform: rotate(45deg);
+}
+
+.overlay .home-hint:hover {
+  transform: rotate(1deg) scale(1.03);
+  background: #fff;
+}
+
+.run-hud {
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.run-hud span {
+  white-space: nowrap;
+}
+
+.trail-progress {
+  height: 8px;
+  overflow: hidden;
+  background: #e5dfeb;
+}
+
+.trail-progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(90deg, #8f82d7, #ff9fc4, #ffe594);
+  transition: width .15s linear;
+}
+
+.overlay .mode-hint {
+  margin: 0 0 10px;
+  padding: 7px 13px;
+  border: 2px dashed #d59ac4;
+  border-radius: 15px;
+  background: #fffdf8;
+  color: #76526d;
+  font-family: "Comic Sans MS", "Arial Rounded MT Bold", ui-rounded, cursive;
+  font-size: clamp(.72rem, 1.7vw, .9rem);
+  line-height: 1.3;
+}
