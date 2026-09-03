@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s), canvas=$('#game'),ctx=canvas.getContext('2
 let data=JSON.parse(localStorage.getItem('beniBigDay')||'null')||{coins:20,hunger:72,clean:70,happy:76,owned:[]};
 data.unlocked=Math.max(1,data.unlocked||1);
 let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal';
-const modes={easy:{start:12,max:20,ramp:210,hearts:4,spawn:1.15},normal:{start:14,max:24,ramp:145,hearts:3,spawn:1},hard:{start:17,max:29,ramp:100,hearts:2,spawn:.82}};
+const modes={easy:{start:8,max:15,ramp:230,hearts:4,spawn:1.15},normal:{start:10,max:18,ramp:175,hearts:3,spawn:1},hard:{start:12,max:22,ramp:130,hearts:2,spawn:.82}};
 const levels=[
   {goal:400,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
   {goal:550,name:'Candy Sunset',sky:'#ffc2cf',ground:'#e8a6cc',far:'#cb79ac',accent:'#fff0b8'},
