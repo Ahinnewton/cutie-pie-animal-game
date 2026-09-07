@@ -1,7 +1,7 @@
 const $=s=>document.querySelector(s), canvas=$('#game'),ctx=canvas.getContext('2d'),beniPhoto=new Image();beniPhoto.src='beni.png';
 let data=JSON.parse(localStorage.getItem('beniBigDay')||'null')||{coins:20,hunger:72,clean:70,happy:76,owned:[]};
 data.unlocked=Math.max(1,data.unlocked||1);
-let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal';
+let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,keys=0,treasures=0,flightFrames=0,bossHP=6,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal';
 const modes={easy:{start:9,max:16,ramp:225,hearts:4,spawn:1.15},normal:{start:10.5,max:19,ramp:168,hearts:3,spawn:1},hard:{start:13,max:23,ramp:122,hearts:2,spawn:.82}};
 const levels=[
   {goal:400,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
@@ -19,20 +19,20 @@ const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{i
 function save(){localStorage.setItem('beniBigDay',JSON.stringify(data));render()}
 function render(){ $('#coins').textContent=data.coins;['hunger','clean','happy'].forEach(k=>$('#'+k).style.width=data[k]+'%');const box=$('#shopItems');box.innerHTML='';shop.forEach(item=>{const b=document.createElement('button'),owned=data.owned.includes(item.id);b.className=owned?'owned':'';b.innerHTML=`${item.icon}<br>${item.name}<br><small>${owned?'USE':`🪙 ${item.price}`}</small>`;b.onclick=()=>buy(item);box.append(b)});refreshLevels()}
 function refreshLevels(){const s=$('#courseLevel');if(!s)return;const chosen=Math.min(Number(s.value)||data.unlocked,data.unlocked);s.innerHTML='';levels.forEach((l,i)=>{const o=document.createElement('option');o.value=i+1;o.disabled=i+1>data.unlocked;o.textContent=`${i+1}. ${l.name}${o.disabled?' — LOCKED':''}`;s.append(o)});s.value=chosen;showGoal()}
-function showGoal(){const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=`Reach ${l.goal}m to clear ${l.name}.`}
+function showGoal(){const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=n===10?`Finish distance: ${l.goal} m · Defeat the Cloud King`:`${l.name} · Finish distance: ${l.goal} m`}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1800)}
 function buy(i){if(!data.owned.includes(i.id)){if(data.coins<i.price)return toast('Earn more coins on Treat Trail! 🦴');data.coins-=i.price;data.owned.push(i.id);toast(`${i.name} unlocked! ✨`)}use(i);save()}
 function use(i){if(i.type==='hat')$('#hat').textContent=i.id==='nohat'?'':i.icon;if(i.type==='outfit')$('#outfit').textContent=i.id==='nooutfit'?'':i.icon;if(i.type==='room')$('#room').className=`room room-${i.id}`;if(i.type==='decor')$('#decorSide').textContent=i.icon;toast(i.id.startsWith('no')?'Back to fluffy Beni! 🤎':`Beni loves the ${i.name}! 💖`)}
 document.querySelectorAll('[data-care]').forEach(b=>b.onclick=()=>{const a=b.dataset.care;if(a==='feed'){data.hunger=Math.min(100,data.hunger+24);data.coins=Math.max(0,data.coins-1);toast('Nom nom nom! 😋')}if(a==='wash'){data.clean=100;toast('Fluffy and clean! 🫧')}if(a==='play'){data.happy=Math.min(100,data.happy+20);toast('Zoomies!! 🎾')}if(a==='sleep'){data.hunger=Math.max(15,data.hunger-8);data.happy=Math.min(100,data.happy+10);toast('Sweet dreams, Beni 🌙')}$('#beni').animate([{transform:'scale(1)'},{transform:'scale(1.18) rotate(-5deg)'},{transform:'scale(1)'}],400);save()});
 setInterval(()=>{data.hunger=Math.max(10,data.hunger-1);data.clean=Math.max(10,data.clean-.5);data.happy=Math.max(10,data.happy-.4);save()},12000);
-function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');$('#runOverlay h2').textContent='Ready, Beni?';showGoal()}
+function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');$('#runOverlay h2').textContent='Ready for the trail?';showGoal()}
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
-function resetRun(){difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=m.start+(runLevel-1)*1.25;distance=0;bones=0;combo=0;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
-function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#cloudHits').textContent=cloudHits;const max=modes[difficulty]?.hearts||3;$('#lives').textContent='● '.repeat(lives)+'○ '.repeat(Math.max(0,max-lives));$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
+function resetRun(){difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=m.start+(runLevel-1)*1.25;distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
+function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent='● '.repeat(lives)+'○ '.repeat(Math.max(0,max-lives));$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
-function spawnThing(){const r=Math.random();if(runLevel>=3&&r<.07)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<.12)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.6)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.82)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
+function spawnThing(){const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=6&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<goldenChance+.05)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
+function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
 function cloud(x,y,s=1){ctx.fillStyle='#fffdf1';ctx.beginPath();ctx.arc(x,y,17*s,0,Math.PI*2);ctx.arc(x+22*s,y-9*s,23*s,0,Math.PI*2);ctx.arc(x+48*s,y,18*s,0,Math.PI*2);ctx.fill();ctx.fillRect(x,y,48*s,18*s)}
 function flower(x,y,color){ctx.strokeStyle='#56874f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+24);ctx.stroke();for(let a=0;a<6;a++)circle(x+Math.cos(a*Math.PI/3)*7,y+Math.sin(a*Math.PI/3)*7,5,color);circle(x,y,4,'#ffe77a')}
@@ -115,29 +115,44 @@ function drawBackground(){
     if(runLevel>=6){circle(x+20,414,7,runLevel===8?'#d99ab3':runLevel===9?'#9bb7c4':'#8e9da0');circle(x+28,416,5,'rgba(255,255,255,.25)')}
   }
 }
-function draw(){drawBackground();ctx.save();ctx.fillStyle='rgba(34,47,39,.22)';ctx.beginPath();ctx.ellipse(beni.x+34,374,31,8,0,0,Math.PI*2);ctx.fill();const ph=ducking?48:72,py=ducking?beni.y+4:beni.y-42;ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2,0,Math.PI*2);ctx.clip();if(beniPhoto.complete)ctx.drawImage(beniPhoto,beni.x,py,68,ph);ctx.restore();things.forEach(drawThing)}
+function drawBoss(){
+  if(runLevel!==10)return;ctx.save();ctx.translate(785,105);
+  ctx.fillStyle='rgba(55,45,80,.22)';ctx.beginPath();ctx.ellipse(0,50,70,18,0,0,Math.PI*2);ctx.fill();
+  circle(-34,24,30,'#d8d3e8');circle(0,8,43,'#eeeaf5');circle(40,25,31,'#d8d3e8');ctx.fillStyle='#d8d3e8';ctx.fillRect(-35,20,76,35);
+  ctx.font='42px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.fillText('👑',3,-34);
+  ctx.fillStyle='#574867';circle(-15,12,5,'#574867');circle(19,12,5,'#574867');ctx.strokeStyle='#574867';ctx.lineWidth=4;ctx.beginPath();ctx.arc(2,38,14,Math.PI,0);ctx.stroke();
+  ctx.fillStyle='#40394c';ctx.fillRect(-54,68,108,10);ctx.fillStyle='#f08aac';ctx.fillRect(-52,70,104*(bossHP/6),6);ctx.restore()
+}
+function draw(){drawBackground();drawBoss();ctx.save();ctx.fillStyle='rgba(34,47,39,.22)';ctx.beginPath();ctx.ellipse(beni.x+34,374,31,8,0,0,Math.PI*2);ctx.fill();const ph=ducking?48:72,py=ducking?beni.y+4:beni.y-42;if(flightFrames>0){const colors=['#ef7e98','#f2bd72','#f4df7f','#75bd91','#7caede','#aa8bd1'];colors.forEach((c,i)=>{ctx.strokeStyle=c;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(beni.x-58,py+22+i*5);ctx.lineTo(beni.x+5,py+22+i*5);ctx.stroke()});ctx.font='27px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('✨',beni.x-8,py-3)}ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2,0,Math.PI*2);ctx.clip();if(beniPhoto.complete)ctx.drawImage(beniPhoto,beni.x,py,68,ph);ctx.restore();things.forEach(drawThing)}
 function loop(){
   if(!running)return;
   if(paused){raf=requestAnimationFrame(loop);return}
   frame++;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
   const interval=Math.max(24,Math.floor((94-speed*2.7-runLevel*5)*m.spawn));
   if(frame%interval===0){spawnThing();const comboChance=Math.max(0,(runLevel-1)*.09);if(Math.random()<comboChance)setTimeout(()=>running&&!paused&&spawnThing(),230);if(runLevel>=5&&Math.random()<.18)setTimeout(()=>running&&!paused&&spawnThing(),440)}
-  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10));beni.vy+=1.6;beni.y+=beni.vy;
-  if(beni.y>=330){beni.y=330;beni.vy=0;beni.ground=true;beni.jumps=0}
+  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10));
+  if(flightFrames>0){flightFrames--;beni.y=235;beni.vy=0;beni.ground=false;if(flightFrames===0)toast('Rainbow flight finished—land safely! 🌈')}
+  else{beni.vy+=1.6;beni.y+=beni.vy;if(beni.y>=330){beni.y=330;beni.vy=0;beni.ground=true;beni.jumps=0}}
   const box={x:beni.x+8,y:beni.y+(ducking?15:-35),w:52,h:ducking?35:62};
   things.forEach(t=>{t.x-=speed;if(t.hit||!collide(box,t))return;t.hit=true;
+    if(t.type==='cloud'&&flightFrames>0){toast('Rainbow shield! Cloud blocked! 🌈');return}
     if(t.type==='cookie'||t.type==='golden'){
       const prize=t.type==='golden'?3:1;bones+=prize;data.coins+=prize;combo++;
-      if(combo%5===0){data.coins+=2;toast(`${combo} cookie combo! +2 bonus coins! ✨`)}else toast(t.type==='golden'?'+3! Golden treat! 🌟':'+1 coin! Cookie! 🍪')
+      if(t.type==='golden'&&runLevel===10&&bossHP>0){bossHP--;toast(`Star hit! Cloud King has ${bossHP} power left! 👑`)}
+      else if(combo%5===0){data.coins+=2;toast(`${combo} cookie combo! +2 bonus coins! ✨`)}else toast(t.type==='golden'?'+3! Golden treat! 🌟':'+1 coin! Cookie! 🍪')
     }else if(t.type==='heart'){
       const max=modes[difficulty].hearts;if(lives<max){lives++;toast('Beni found a heart! +1 health 💖')}else{data.coins++;toast('Full health! +1 coin 💖')}
+    }else if(t.type==='rainbow'){
+      flightFrames=300;beni.y=235;beni.vy=0;toast('Rainbow flight! Beni is safe for 5 seconds! 🌈')
+    }else if(t.type==='key'){
+      keys++;if(keys%3===0){treasures++;data.coins+=10;toast('Treasure opened! +10 coins! 🎁')}else toast(`${keys%3}/3 keys found! Keep searching! 🗝️`)
     }else{lives--;cloudHits++;combo=0;toast(`Cloud hit ${cloudHits}! Combo reset! ☁️`);if(navigator.vibrate)navigator.vibrate(100)}
     updateHud()
   });
   things=things.filter(t=>t.x>-70&&!t.hit);if(frame%6===0)updateHud();draw();
-  if(lives<=0)return endRun(false);if(distance>=cfg.goal)return endRun(true);raf=requestAnimationFrame(loop)
+  if(lives<=0)return endRun(false);if(distance>=cfg.goal&&(runLevel!==10||bossHP<=0))return endRun(true);raf=requestAnimationFrame(loop)
 }
 function togglePause(){if(!running)return;paused=!paused;$('#pauseRun').textContent=paused?'RESUME':'PAUSE';toast(paused?'Game paused 💛':'Go, Beni! 🐾')}
 function startRun(){resetRun();running=true;$('#runOverlay').classList.add('hidden');loop()}
-function endRun(cleared=false){running=false;paused=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));$('#runOverlay').classList.remove('hidden');if(cleared){distance=levels[runLevel-1].goal;updateHud();const final=runLevel===levels.length;if(!final)data.unlocked=Math.max(data.unlocked,runLevel+1);$('#runOverlay h2').textContent=final?'All 10 levels cleared!':'Level cleared!';$('#levelGoal').textContent=final?'You completed Beni’s Grand Challenge!':`Level ${runLevel+1} is now unlocked.`;$('#startRun').textContent=final?'Play again':'Next level';save();refreshLevels();if(!final)$('#courseLevel').value=runLevel+1}else{$('#runOverlay h2').textContent='Try again';$('#levelGoal').textContent=`You reached ${Math.floor(distance)}m of ${levels[runLevel-1].goal}m.`;$('#startRun').textContent='Retry level'}save()}
+function endRun(cleared=false){running=false;paused=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));$('#runOverlay').classList.remove('hidden');if(cleared){distance=levels[runLevel-1].goal;updateHud();const final=runLevel===levels.length;if(!final)data.unlocked=Math.max(data.unlocked,runLevel+1);$('#runOverlay h2').textContent=final?'All 10 levels cleared!':'Level cleared!';$('#levelGoal').textContent=final?'You completed Beni’s Grand Challenge!':`Level ${runLevel+1} is now unlocked.`;$('#startRun').textContent=final?'Play again':'Next level';save();refreshLevels();if(!final)$('#courseLevel').value=runLevel+1}else{$('#runOverlay h2').textContent='Run complete';$('#levelGoal').textContent=`You reached ${Math.floor(distance)}m of ${levels[runLevel-1].goal}m.`;$('#startRun').textContent='Retry level'}save()}
 $('#courseLevel').onchange=()=>{showGoal();resetRun();draw()};$('#startRun').onclick=startRun;$('#jump').onpointerdown=jump;$('#duck').onpointerdown=()=>duck(true);$('#duck').onpointerup=()=>duck(false);$('#pauseRun').onclick=togglePause;addEventListener('keydown',e=>{if([' ','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();if(e.key===' '||e.key==='ArrowUp')jump();if(e.key==='ArrowDown')duck(true);if(e.key.toLowerCase()==='p')togglePause()});addEventListener('keyup',e=>{if(e.key==='ArrowDown')duck(false)});$('#difficulty').value='normal';render();resetRun();draw();
