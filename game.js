@@ -1,7 +1,7 @@
 const $=s=>document.querySelector(s), canvas=$('#game'),ctx=canvas.getContext('2d'),beniPhoto=new Image();beniPhoto.src='beni.png';
 let data=JSON.parse(localStorage.getItem('beniBigDay')||'null')||{coins:20,hunger:72,clean:70,happy:76,owned:[]};
 data.unlocked=Math.max(1,data.unlocked||1);
-let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,keys=0,treasures=0,flightFrames=0,bossHP=6,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal';
+let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,keys=0,treasures=0,flightFrames=0,bossHP=6,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal',runResult=null;
 const modes={easy:{start:9,max:16,ramp:225,hearts:4,spawn:1.15},normal:{start:10.5,max:19,ramp:168,hearts:3,spawn:1},hard:{start:13,max:23,ramp:122,hearts:2,spawn:.82}};
 const levels=[
   {goal:400,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
@@ -19,15 +19,15 @@ const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{i
 function save(){localStorage.setItem('beniBigDay',JSON.stringify(data));render()}
 function render(){ $('#coins').textContent=data.coins;['hunger','clean','happy'].forEach(k=>$('#'+k).style.width=data[k]+'%');const box=$('#shopItems');box.innerHTML='';shop.forEach(item=>{const b=document.createElement('button'),owned=data.owned.includes(item.id);b.className=owned?'owned':'';b.innerHTML=`${item.icon}<br>${item.name}<br><small>${owned?'USE':`🪙 ${item.price}`}</small>`;b.onclick=()=>buy(item);box.append(b)});refreshLevels()}
 function refreshLevels(){const s=$('#courseLevel');if(!s)return;const chosen=Math.min(Number(s.value)||data.unlocked,data.unlocked);s.innerHTML='';levels.forEach((l,i)=>{const o=document.createElement('option');o.value=i+1;o.disabled=i+1>data.unlocked;o.textContent=`${i+1}. ${l.name}${o.disabled?' — LOCKED':''}`;s.append(o)});s.value=chosen;showGoal()}
-function showGoal(){const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=n===10?`Finish distance: ${l.goal} m · Defeat the Cloud King`:`${l.name} · Finish distance: ${l.goal} m`}
+function showGoal(){if(runResult)return;const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=n===10?`Finish distance: ${l.goal} m · Defeat the Cloud King`:`${l.name} · Finish distance: ${l.goal} m`}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1800)}
 function buy(i){if(!data.owned.includes(i.id)){if(data.coins<i.price)return toast('Earn more coins on Treat Trail! 🦴');data.coins-=i.price;data.owned.push(i.id);toast(`${i.name} unlocked! ✨`)}use(i);save()}
 function use(i){if(i.type==='hat')$('#hat').textContent=i.id==='nohat'?'':i.icon;if(i.type==='outfit')$('#outfit').textContent=i.id==='nooutfit'?'':i.icon;if(i.type==='room')$('#room').className=`room room-${i.id}`;if(i.type==='decor')$('#decorSide').textContent=i.icon;toast(i.id.startsWith('no')?'Back to fluffy Beni! 🤎':`Beni loves the ${i.name}! 💖`)}
 document.querySelectorAll('[data-care]').forEach(b=>b.onclick=()=>{const a=b.dataset.care;if(a==='feed'){data.hunger=Math.min(100,data.hunger+24);data.coins=Math.max(0,data.coins-1);toast('Nom nom nom! 😋')}if(a==='wash'){data.clean=100;toast('Fluffy and clean! 🫧')}if(a==='play'){data.happy=Math.min(100,data.happy+20);toast('Zoomies!! 🎾')}if(a==='sleep'){data.hunger=Math.max(15,data.hunger-8);data.happy=Math.min(100,data.happy+10);toast('Sweet dreams, Beni 🌙')}$('#beni').animate([{transform:'scale(1)'},{transform:'scale(1.18) rotate(-5deg)'},{transform:'scale(1)'}],400);save()});
 setInterval(()=>{data.hunger=Math.max(10,data.hunger-1);data.clean=Math.max(10,data.clean-.5);data.happy=Math.max(10,data.happy-.4);save()},12000);
-function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');$('#runOverlay h2').textContent='Ready for the trail?';showGoal()}
+function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');runResult=null;$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal()}
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
-function resetRun(){difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=m.start+(runLevel-1)*1.25;distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
+function resetRun(){runResult=null;difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=m.start+(runLevel-1)*1.25;distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
 function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent='● '.repeat(lives)+'○ '.repeat(Math.max(0,max-lives));$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
 function spawnThing(){const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=6&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<goldenChance+.05)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
@@ -154,5 +154,26 @@ function loop(){
 }
 function togglePause(){if(!running)return;paused=!paused;$('#pauseRun').textContent=paused?'RESUME':'PAUSE';toast(paused?'Game paused 💛':'Go, Beni! 🐾')}
 function startRun(){resetRun();running=true;$('#runOverlay').classList.add('hidden');loop()}
-function endRun(cleared=false){running=false;paused=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));$('#runOverlay').classList.remove('hidden');if(cleared){distance=levels[runLevel-1].goal;updateHud();const final=runLevel===levels.length;if(!final)data.unlocked=Math.max(data.unlocked,runLevel+1);$('#runOverlay h2').textContent=final?'All 10 levels cleared!':'Level cleared!';$('#levelGoal').textContent=final?'You completed Beni’s Grand Challenge!':`Level ${runLevel+1} is now unlocked.`;$('#startRun').textContent=final?'Play again':'Next level';save();refreshLevels();if(!final)$('#courseLevel').value=runLevel+1}else{$('#runOverlay h2').textContent='Run complete';$('#levelGoal').textContent=`You reached ${Math.floor(distance)}m of ${levels[runLevel-1].goal}m.`;$('#startRun').textContent='Retry level'}save()}
-$('#courseLevel').onchange=()=>{showGoal();resetRun();draw()};$('#startRun').onclick=startRun;$('#jump').onpointerdown=jump;$('#duck').onpointerdown=()=>duck(true);$('#duck').onpointerup=()=>duck(false);$('#pauseRun').onclick=togglePause;addEventListener('keydown',e=>{if([' ','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();if(e.key===' '||e.key==='ArrowUp')jump();if(e.key==='ArrowDown')duck(true);if(e.key.toLowerCase()==='p')togglePause()});addEventListener('keyup',e=>{if(e.key==='ArrowDown')duck(false)});$('#difficulty').value='normal';render();resetRun();draw();
+function endRun(cleared=false){
+  running=false;paused=false;cancelAnimationFrame(raf);
+  runResult=cleared?'cleared':'failed';
+  data.happy=Math.min(100,data.happy+Math.min(20,bones));
+  $('#runOverlay').classList.remove('hidden');
+  const final=runLevel===levels.length;
+  if(cleared){
+    distance=levels[runLevel-1].goal;updateHud();
+    if(!final)data.unlocked=Math.max(data.unlocked,runLevel+1);
+  }
+  save();
+  if(cleared){
+    $('#runOverlay h2').textContent=final?'All levels complete':'Level complete';
+    $('#levelGoal').textContent=final?'You completed every course.':`${levels[runLevel-1].name} complete · ${levels[runLevel].name} unlocked`;
+    $('#startRun').textContent=final?'Play again':'Next level';
+    $('#courseLevel').value=final?runLevel:runLevel+1;
+  }else{
+    $('#runOverlay h2').textContent='Run ended';
+    $('#levelGoal').textContent=`You reached ${Math.floor(distance)} m of ${levels[runLevel-1].goal} m.`;
+    $('#startRun').textContent='Retry level';
+  }
+}
+$('#courseLevel').onchange=()=>{resetRun();$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal();draw()};$('#startRun').onclick=startRun;$('#jump').onpointerdown=jump;$('#duck').onpointerdown=()=>duck(true);$('#duck').onpointerup=()=>duck(false);$('#pauseRun').onclick=togglePause;addEventListener('keydown',e=>{if([' ','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();if(e.key===' '||e.key==='ArrowUp')jump();if(e.key==='ArrowDown')duck(true);if(e.key.toLowerCase()==='p')togglePause()});addEventListener('keyup',e=>{if(e.key==='ArrowDown')duck(false)});$('#difficulty').value='normal';render();resetRun();draw();
