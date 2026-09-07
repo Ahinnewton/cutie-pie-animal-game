@@ -56,3 +56,23 @@ button:focus-visible, select:focus-visible { outline: 2px solid #506451; outline
 .overlay #levelGoal { color: #454d48; font-size: .9rem; }
 .overlay #startRun { background: #4e604e; border-radius: 4px; }
 .overlay #startRun:hover { background: #3d4e3d; }
+
+/* Keep decorative elements still and feedback in one fixed place. */
+.beni, .love { animation: none; }
+.room, .stats i, .trail-progress i { transition: none; }
+.run .overlay { background: #f5f3ee; backdrop-filter: none; }
+.run-hud b { display: inline-block; font-variant-numeric: tabular-nums; }
+#distance { min-width: 4ch; }
+#bones, #combo, #keys, #treasures, #cloudHits { min-width: 3ch; }
+.toast {
+  top: auto;
+  bottom: 18px;
+  max-width: calc(100vw - 32px);
+  translate: -50% 0;
+  visibility: hidden;
+  transition: none;
+  box-shadow: none;
+  font-weight: 500;
+  text-align: center;
+}
+.toast.show { translate: -50% 0; visibility: visible; }
