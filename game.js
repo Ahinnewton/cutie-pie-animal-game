@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s), canvas=$('#game'),ctx=canvas.getContext('2d'),beniPhoto=new Image();beniPhoto.src='beni.png';
 let data=JSON.parse(localStorage.getItem('beniBigDay')||'null')||{coins:20,hunger:72,clean:70,happy:76,owned:[]};
-data.unlocked=Math.max(1,data.unlocked||1);
+
 let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,keys=0,treasures=0,flightFrames=0,bossHP=6,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal',runResult=null;
 const modes={easy:{start:9,max:16,ramp:225,hearts:4,spawn:1.15},normal:{start:10.5,max:19,ramp:168,hearts:3,spawn:1},hard:{start:13,max:23,ramp:122,hearts:2,spawn:.82}};
 const levels=[
@@ -8,13 +8,9 @@ const levels=[
   {goal:550,name:'Candy Sunset',sky:'#ffc2cf',ground:'#e8a6cc',far:'#cb79ac',accent:'#fff0b8'},
   {goal:700,name:'Magic Forest',sky:'#9edbc3',ground:'#75ae78',far:'#477d5d',accent:'#d8f5c4'},
   {goal:850,name:'Moonlit Hills',sky:'#8d91d9',ground:'#7774a8',far:'#55537f',accent:'#f8edb0'},
-  {goal:1100,name:'Rainbow Challenge',sky:'#c7b5ff',ground:'#8ed8b2',far:'#6aa38a',accent:'#ffd1e6'},
-  {goal:1250,name:'Starlight Garden',sky:'#777bb7',ground:'#799b86',far:'#555982',accent:'#fff3bd'},
-  {goal:1400,name:'Crystal Lake',sky:'#9fd8e8',ground:'#75aaa1',far:'#668fa4',accent:'#d9fbff'},
-  {goal:1550,name:'Sakura Village',sky:'#f7c9d7',ground:'#9eb985',far:'#c78fa3',accent:'#fff0ca'},
-  {goal:1750,name:'Aurora Valley',sky:'#4b5985',ground:'#728e91',far:'#4a5c79',accent:'#d8fff0'},
-  {goal:2000,name:'Beni Dreamland',sky:'#8c7db8',ground:'#8cb39e',far:'#655b91',accent:'#fff4bf'}
+  {goal:1100,name:'Rainbow Challenge',sky:'#c7b5ff',ground:'#8ed8b2',far:'#6aa38a',accent:'#ffd1e6'}
 ];
+data.unlocked=Math.min(levels.length,Math.max(1,data.unlocked||1));
 const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{id:'nohat',icon:'✕',name:'No Hat',price:0,type:'hat'},{id:'bow',icon:'🎀',name:'Pink Bow',price:8,type:'hat'},{id:'crown',icon:'👑',name:'Crown',price:18,type:'hat'},{id:'cap',icon:'🧢',name:'Cool Cap',price:15,type:'hat'},{id:'scarf',icon:'🧣',name:'Scarf',price:12,type:'outfit'},{id:'vest',icon:'🦺',name:'Adventure',price:25,type:'outfit'},{id:'blue',icon:'🩵',name:'Blue Room',price:20,type:'room'},{id:'space',icon:'🚀',name:'Space Room',price:35,type:'room'},{id:'teddy',icon:'🧸',name:'Teddy Decor',price:10,type:'decor'}];
 function save(){localStorage.setItem('beniBigDay',JSON.stringify(data));render()}
 function render(){ $('#coins').textContent=data.coins;['hunger','clean','happy'].forEach(k=>$('#'+k).style.width=data[k]+'%');const box=$('#shopItems');box.innerHTML='';shop.forEach(item=>{const b=document.createElement('button'),owned=data.owned.includes(item.id);b.className=owned?'owned':'';b.innerHTML=`${item.icon}<br>${item.name}<br><small>${owned?'USE':`🪙 ${item.price}`}</small>`;b.onclick=()=>buy(item);box.append(b)});refreshLevels()}
@@ -27,10 +23,10 @@ document.querySelectorAll('[data-care]').forEach(b=>b.onclick=()=>{const a=b.dat
 setInterval(()=>{data.hunger=Math.max(10,data.hunger-1);data.clean=Math.max(10,data.clean-.5);data.happy=Math.max(10,data.happy-.4);save()},12000);
 function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');runResult=null;$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal()}
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
-function resetRun(){runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=m.start+(runLevel-1)*1.25;distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
+function resetRun(){runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=(m.start+(runLevel-1)*1.25)*.8;distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
 function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent='● '.repeat(lives)+'○ '.repeat(Math.max(0,max-lives));$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
-function spawnThing(){const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=6&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<goldenChance+.05)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
+function spawnThing(){const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=3&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<goldenChance+.05)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
@@ -125,7 +121,7 @@ function loop(){
   frame++;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
   const interval=Math.max(24,Math.floor((94-speed*2.7-runLevel*5)*m.spawn));
   if(frame%interval===0){spawnThing();const comboChance=Math.max(0,(runLevel-1)*.09);if(Math.random()<comboChance)setTimeout(()=>running&&!paused&&spawnThing(),230);if(runLevel>=5&&Math.random()<.18)setTimeout(()=>running&&!paused&&spawnThing(),440)}
-  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10));
+  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10))*.8;
   if(flightFrames>0){flightFrames--;beni.y=235;beni.vy=0;beni.ground=false;if(flightFrames===0)toast('Rainbow flight finished—land safely! 🌈')}
   else{beni.vy+=1.6;beni.y+=beni.vy;if(beni.y>=330){beni.y=330;beni.vy=0;beni.ground=true;beni.jumps=0}}
   const box={x:beni.x+8,y:beni.y+(ducking?15:-35),w:52,h:ducking?35:62};
