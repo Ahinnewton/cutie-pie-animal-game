@@ -29,7 +29,7 @@ function initAdventures(){
 }
 function currentMission(){return missions[(runLevel-1)%missions.length]}
 function resetAdventures(){
-  magnetFrames=0;butterflyRescued=false;spawnCount=0;cleanCookies=0;runCookies=0;missionDone=false;missionReward=0;
+  magnetFrames=0;butterflyRescued=!!data.butterfly;spawnCount=0;cleanCookies=0;runCookies=0;missionDone=false;missionReward=0;
   $('#party').classList.add('hidden');$('#runReward').textContent='';
 }
 function updateAdventures(){
@@ -65,9 +65,15 @@ function finishAdventures(){
   animalFriends.slice(0,Math.min(animalFriends.length,data.cleared.length+1)).forEach(f=>{const el=document.createElement('span');el.textContent=f.icon;el.title=f.name;row.append(el)});
   $('#party').classList.remove('hidden');
 }
+function drawButterfly(x,y,colors,phase){
+  ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(frame/14+phase)*.12);const flap=.86+Math.sin(frame/5+phase)*.14;
+  ctx.globalAlpha=.86;ctx.fillStyle=colors[0];ctx.beginPath();ctx.ellipse(-4,-2,5*flap,4,Math.PI*.12,0,Math.PI*2);ctx.ellipse(4,-2,5*flap,4,-Math.PI*.12,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.72;ctx.fillStyle=colors[1];ctx.beginPath();ctx.ellipse(-3,3,3.5*flap,2.7,Math.PI*.16,0,Math.PI*2);ctx.ellipse(3,3,3.5*flap,2.7,-Math.PI*.16,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.9;ctx.fillStyle='#9a8e9a';ctx.beginPath();ctx.roundRect(-1, -3, 2, 8, 1);ctx.fill();ctx.restore();
+}
 function drawCompanions(){
   ctx.save();ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.shadowColor='#756684';ctx.shadowBlur=2;ctx.textAlign='center';ctx.textBaseline='middle';
-  if(butterflyRescued){ctx.font='28px "Apple Color Emoji",sans-serif';ctx.fillText('🦋',beni.x-18,beni.y-55+Math.sin(frame/15)*8)}
+  if(butterflyRescued){const colors=[['#f2d8e7','#f8e8f0'],['#d7e7f4','#e9f2fa'],['#dcefdc','#eef8e9']];const spots=[[-18,-58,0],[-2,-72,2.1],[15,-54,4.2]];spots.forEach(([dx,dy,phase],i)=>drawButterfly(beni.x+dx,beni.y+dy+Math.sin(frame/15+phase)*6,colors[i],phase))}
   if(magnetFrames>0){ctx.strokeStyle='#df8bba';ctx.lineWidth=2;ctx.setLineDash([6,7]);ctx.beginPath();ctx.arc(beni.x+34,beni.y-6,72,0,Math.PI*2);ctx.stroke();ctx.setLineDash([])}
   if(data.activeGift){const gift=shop.find(i=>i.id===data.activeGift);if(gift){ctx.font='24px "Apple Color Emoji",sans-serif';ctx.fillText(gift.icon,beni.x+34,beni.y-49)}}
   ctx.restore();
