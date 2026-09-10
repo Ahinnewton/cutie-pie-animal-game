@@ -99,3 +99,34 @@ button:focus-visible, select:focus-visible { outline: 2px solid #506451; outline
   .item-guide h2 { margin-bottom: 8px; }
   .item-guide dl { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
+
+/* Garden and little adventures. */
+.garden-panel { padding: 22px; background: #fcf5f4; border-top: 1px solid #e4d4df; }
+.garden-panel h2 { margin: 0; font-size: 1.15rem; color: #76617d; }
+.garden-panel h3 { font-size: .9rem; color: #76617d; }
+.garden-panel p { font-size: .8rem; line-height: 1.6; color: #796d79; }
+.garden-plots { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; padding: 16px; border-radius: 18px; background: linear-gradient(#e5f1eb,#d7e9cc); }
+.garden-plot { min-height: 135px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 7px; padding: 10px; background: #fffaf2a8; border: 1px dashed #bbc9ad; border-radius: 14px; font-size: .75rem; text-align: center; }
+.garden-art { font-size: 3rem; line-height: 1.2; }
+.garden-swing { position: relative; font-size: 0; width: 65px; height: 58px; border: 5px solid #cba586; border-bottom: 0; border-radius: 7px 7px 0 0; }
+.garden-swing::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; height: 34px; border-left: 2px solid #cba586; border-right: 2px solid #cba586; border-bottom: 6px solid #eab7ca; }
+.garden-shop { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.garden-panel button { padding: 8px 10px; border: 1px solid #d8c8d6; border-radius: 8px; background: #fff9f2; color: #725f76; cursor: pointer; font: inherit; font-size: .75rem; }
+.garden-panel button:disabled { opacity: .5; cursor: default; }
+.animal-friends { display: flex; flex-wrap: wrap; gap: 10px; font-size: .8rem; }
+.animal-friends span { background: #fff9f2; border-radius: 20px; padding: 8px 12px; }
+.adventure-hud { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding: 8px 14px; background: #f5eaf4; color: #74617d; font-size: .75rem; }
+.run .overlay { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; }
+.overlay > * { flex-shrink: 0; }
+.overlay .run-reward { max-width: 420px; color: #826483; font-size: .85rem; line-height: 1.5; }
+.overlay .run-reward:empty { display: none; }
+.overlay:has(.party:not(.hidden)) > .big, .overlay:has(.party:not(.hidden)) > .trail-rules, .overlay:has(.party:not(.hidden)) > .mode-hint { display: none; }
+.party { width: min(360px,100%); padding: 12px; border-radius: 18px; background: radial-gradient(circle at 15% 20%,#fff0ac 0 3px,transparent 4px),radial-gradient(circle at 85% 35%,#efbad3 0 4px,transparent 5px),#eaf4e6; color: #7b6488; }
+.party-beni { display: block; width: 54px; height: 54px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; animation: party-hop .7s ease-in-out 4; }
+.party-friends { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; font-size: 2rem; }
+.party-friends span { animation: party-hop .7s ease-in-out 4; }
+.party-friends span:nth-child(even) { animation-delay: .15s; }
+.party strong { display: block; margin-top: 6px; }
+@keyframes party-hop { 50% { transform: translateY(-8px) rotate(5deg); } }
+@media(prefers-reduced-motion: reduce) { .party-beni,.party-friends span { animation: none; } }
+@media(max-width:560px) { .garden-panel { padding: 14px; } .garden-plots { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 10px; gap: 8px; } }

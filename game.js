@@ -34,23 +34,40 @@ const levels=[
 ];
 data.unlocked=Math.min(levels.length,Math.max(1,data.unlocked||1));
 const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{id:'nohat',icon:'✕',name:'No Hat',price:0,type:'hat'},{id:'bow',icon:'🎀',name:'Pink Bow',price:8,type:'hat'},{id:'crown',icon:'👑',name:'Crown',price:18,type:'hat'},{id:'cap',icon:'🧢',name:'Cool Cap',price:15,type:'hat'},{id:'scarf',icon:'🧣',name:'Scarf',price:12,type:'outfit'},{id:'vest',icon:'🦺',name:'Adventure',price:25,type:'outfit'},{id:'blue',icon:'🩵',name:'Blue Room',price:20,type:'room'},{id:'space',icon:'🚀',name:'Space Room',price:35,type:'room'},{id:'teddy',icon:'🧸',name:'Teddy Decor',price:10,type:'decor'}];
+initAdventures();
 function save(){localStorage.setItem('beniBigDay',JSON.stringify(data));render()}
-function render(){ $('#coins').textContent=data.coins;['hunger','clean','happy'].forEach(k=>$('#'+k).style.width=data[k]+'%');const box=$('#shopItems');box.innerHTML='';shop.forEach(item=>{const b=document.createElement('button'),owned=data.owned.includes(item.id);b.className=owned?'owned':'';b.innerHTML=`${item.icon}<br>${item.name}<br><small>${owned?'USE':`🪙 ${item.price}`}</small>`;b.onclick=()=>buy(item);box.append(b)});refreshLevels()}
+function render(){ $('#coins').textContent=data.coins;['hunger','clean','happy'].forEach(k=>$('#'+k).style.width=data[k]+'%');const box=$('#shopItems');box.innerHTML='';shop.filter(item=>item.type!=='gift'||data.owned.includes(item.id)).forEach(item=>{const b=document.createElement('button'),owned=data.owned.includes(item.id);b.className=owned?'owned':'';b.innerHTML=`${item.icon}<br>${item.name}<br><small>${owned?'USE':`🪙 ${item.price}`}</small>`;b.onclick=()=>buy(item);box.append(b)});refreshLevels();renderAdventures()}
 function refreshLevels(){const s=$('#courseLevel');if(!s)return;const chosen=Math.min(Number(s.value)||data.unlocked,data.unlocked);s.innerHTML='';levels.forEach((l,i)=>{const o=document.createElement('option');o.value=i+1;o.disabled=i+1>data.unlocked;o.textContent=`${i+1}. ${l.name}${o.disabled?' — LOCKED':''}`;s.append(o)});s.value=chosen;showGoal()}
 function showGoal(){if(runResult)return;const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=`${l.name} · Level ${n} of ${levels.length} · Finish distance: ${l.goal} m`}
 function toast(t){if(running&&!paused&&Date.now()-(toast.lastRunMessage||0)<3000)return;if(running)toast.lastRunMessage=Date.now();const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1800)}
 function buy(i){if(!data.owned.includes(i.id)){if(data.coins<i.price)return toast('Earn more coins on Treat Trail! 🦴');data.coins-=i.price;data.owned.push(i.id);toast(`${i.name} unlocked! ✨`)}use(i);save()}
-function use(i){if(i.type==='hat')$('#hat').textContent=i.id==='nohat'?'':i.icon;if(i.type==='outfit')$('#outfit').textContent=i.id==='nooutfit'?'':i.icon;if(i.type==='room')$('#room').className=`room room-${i.id}`;if(i.type==='decor')$('#decorSide').textContent=i.icon;toast(i.id.startsWith('no')?'Back to fluffy Beni! 🤎':`Beni loves the ${i.name}! 💖`)}
+function use(i){if(i.type==='hat')data.activeGift=null;if(i.type==='gift'){data.activeGift=i.id;$('#hat').textContent=i.icon}localStorage.setItem('beniBigDay',JSON.stringify(data));if(i.type==='hat')$('#hat').textContent=i.id==='nohat'?'':i.icon;if(i.type==='outfit')$('#outfit').textContent=i.id==='nooutfit'?'':i.icon;if(i.type==='room')$('#room').className=`room room-${i.id}`;if(i.type==='decor')$('#decorSide').textContent=i.icon;toast(i.id.startsWith('no')?'Back to fluffy Beni! 🤎':`Beni loves the ${i.name}! 💖`)}
 document.querySelectorAll('[data-care]').forEach(b=>b.onclick=()=>{const a=b.dataset.care;if(a==='feed'){data.hunger=Math.min(100,data.hunger+24);data.coins=Math.max(0,data.coins-1);toast('Nom nom nom! 😋')}if(a==='wash'){data.clean=100;toast('Fluffy and clean! 🫧')}if(a==='play'){data.happy=Math.min(100,data.happy+20);toast('Zoomies!! 🎾')}if(a==='sleep'){data.hunger=Math.max(15,data.hunger-8);data.happy=Math.min(100,data.happy+10);toast('Sweet dreams, Beni 🌙')}save()});
 setInterval(()=>{data.hunger=Math.max(10,data.hunger-1);data.clean=Math.max(10,data.clean-.5);data.happy=Math.max(10,data.happy-.4);save()},12000);
-function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');runResult=null;$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal()}
+function stopRun(){$('#party').classList.add('hidden');$('#runReward').textContent='';if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');runResult=null;$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal()}
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
-function resetRun(){runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=trailSpeed(m,runLevel,0);distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
-function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent=`♥ ${lives} / ${max}`;$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
+function resetRun(){resetAdventures();runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=trailSpeed(m,runLevel,0);distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
+function updateHud(){updateAdventures();$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent=`♥ ${lives} / ${max}`;$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
-function spawnThing(){const gap=Math.max(160,modes[difficulty].max*.968*42);if(things.some(t=>930-(t.x+t.w)<gap))return;const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=3&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(r<goldenChance+.12)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
+function spawnThing(){
+  const gap=Math.max(160,modes[difficulty].max*.968*42);
+  if(things.some(t=>930-(t.x+t.w)<gap))return;
+  spawnCount++;const r=Math.random();let type;
+  if(!butterflyRescued&&spawnCount%9===3)type='butterfly';
+  else if(spawnCount%10===6)type='magnet';
+  else if(runLevel>=5&&r<.04)type='rainbow';
+  else if(r<.13)type='key';
+  else if(r<.20)type='golden';
+  else if(r<.30)type='heart';
+  else if(r<.67)type='cookie';
+  else type='cloud';
+  const sizes={cloud:[52,43],cookie:[36,36],heart:[38,38],rainbow:[44,44]};
+  const [w,h]=sizes[type]||[40,40];
+  const y=type==='cloud'?(Math.random()<.5?337:275):type==='butterfly'?270:235+Math.random()*65;
+  things.push({type,x:930,y,w,h,hit:false});
+}
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.globalAlpha=1;ctx.fillStyle='#ffffff';ctx.shadowColor='#26334d';ctx.shadowBlur=3;ctx.shadowOffsetY=1;ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
+function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.globalAlpha=1;ctx.fillStyle='#ffffff';ctx.shadowColor='#26334d';ctx.shadowBlur=3;ctx.shadowOffsetY=1;ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='butterfly')ctx.fillText('🦋',20,20);else if(t.type==='magnet')ctx.fillText('🧲',20,20);else if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
 function cloud(x,y,s=1){ctx.fillStyle='#fffdf1';ctx.beginPath();ctx.arc(x,y,17*s,0,Math.PI*2);ctx.arc(x+22*s,y-9*s,23*s,0,Math.PI*2);ctx.arc(x+48*s,y,18*s,0,Math.PI*2);ctx.fill();ctx.fillRect(x,y,48*s,18*s)}
 function flower(x,y,color){ctx.strokeStyle='#56874f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+24);ctx.stroke();for(let a=0;a<6;a++)circle(x+Math.cos(a*Math.PI/3)*7,y+Math.sin(a*Math.PI/3)*7,5,color);circle(x,y,4,'#ffe77a')}
@@ -168,30 +185,32 @@ function drawBoss(){
   ctx.fillStyle='#574867';circle(-15,12,5,'#574867');circle(19,12,5,'#574867');ctx.strokeStyle='#574867';ctx.lineWidth=4;ctx.beginPath();ctx.arc(2,38,14,Math.PI,0);ctx.stroke();
   ctx.fillStyle='#40394c';ctx.fillRect(-54,68,108,10);ctx.fillStyle='#f08aac';ctx.fillRect(-52,70,104*(bossHP/6),6);ctx.restore()
 }
-function draw(){drawBackground();drawBoss();ctx.save();ctx.fillStyle='rgba(34,47,39,.22)';ctx.beginPath();ctx.ellipse(beni.x+34,374,31,8,0,0,Math.PI*2);ctx.fill();const ph=ducking?48:72,py=ducking?beni.y+4:beni.y-42;if(flightFrames>0){ctx.strokeStyle='#697e65';ctx.lineWidth=3;ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2+5,0,Math.PI*2);ctx.stroke()}ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2,0,Math.PI*2);ctx.clip();if(beniPhoto.complete)ctx.drawImage(beniPhoto,beni.x,py,68,ph);ctx.restore();things.forEach(drawThing)}
+function draw(){drawBackground();drawBoss();ctx.save();ctx.fillStyle='rgba(34,47,39,.22)';ctx.beginPath();ctx.ellipse(beni.x+34,374,31,8,0,0,Math.PI*2);ctx.fill();const ph=ducking?48:72,py=ducking?beni.y+4:beni.y-42;if(flightFrames>0){ctx.strokeStyle='#697e65';ctx.lineWidth=3;ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2+5,0,Math.PI*2);ctx.stroke()}ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2,0,Math.PI*2);ctx.clip();if(beniPhoto.complete)ctx.drawImage(beniPhoto,beni.x,py,68,ph);ctx.restore();drawCompanions();things.forEach(drawThing)}
 function loop(){
   if(!running)return;
   if(paused){raf=requestAnimationFrame(loop);return}
-  frame++;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
+  frame++;if(magnetFrames>0)magnetFrames--;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
   const interval=Math.max(48,Math.floor((88-Math.min(runLevel,20))*m.spawn));
   if(frame%interval===0)spawnThing();
   speed=trailSpeed(m,runLevel,distance);
   if(flightFrames>0){flightFrames--;beni.y=235;beni.vy=0;beni.ground=false;if(flightFrames===0)toast('Rainbow flight finished—land safely! 🌈')}
   else{beni.vy+=1.6;beni.y+=beni.vy;if(beni.y>=330){beni.y=330;beni.vy=0;beni.ground=true;beni.jumps=0}}
   const box={x:beni.x+8,y:beni.y+(ducking?15:-35),w:52,h:ducking?35:62};
-  things.forEach(t=>{t.x-=speed;if(t.hit||!collide(box,t))return;t.hit=true;
+  things.forEach(t=>{t.x-=speed;
+    if(magnetFrames>0&&(t.type==='cookie'||t.type==='golden')&&Math.hypot(t.x-beni.x,t.y-(beni.y-10))<250){t.x+=(beni.x+20-t.x)*.14;t.y+=(beni.y-10-t.y)*.14}
+    if(t.hit||!collide(box,t))return;t.hit=true;
     if(t.type==='cloud'&&flightFrames>0){toast('Rainbow shield! Cloud blocked! 🌈');return}
     if(t.type==='cookie'||t.type==='golden'){
-      const prize=t.type==='golden'?3:1;bones+=prize;data.coins+=prize;combo++;
+      const prize=t.type==='golden'?3:1;bones+=prize;runCookies+=prize;cleanCookies+=prize;data.coins+=prize;combo++;
       if(t.type==='golden'&&runLevel===10&&bossHP>0){bossHP--;toast(`Star hit! Cloud King has ${bossHP} power left! 👑`)}
       else if(combo%5===0){data.coins+=2;toast(`${combo} cookie combo! +2 bonus coins! ✨`)}else if(t.type==='golden')toast('Golden cookie: +3 coins')
-    }else if(t.type==='heart'){
+    }else if(t.type==='magnet'){magnetFrames=480;toast('Cookie magnet! 8 seconds! 🧲')}else if(t.type==='butterfly'){butterflyRescued=true;data.butterfly=true;toast('Butterfly rescued! A new little friend 🦋')}else if(t.type==='heart'){
       const max=modes[difficulty].hearts;if(lives<max){lives++;toast('Beni found a heart! +1 health 💖')}else{data.coins++;toast('Full health! +1 coin 💖')}
     }else if(t.type==='rainbow'){
       flightFrames=300;beni.y=235;beni.vy=0;toast('Rainbow flight! Beni is safe for 5 seconds! 🌈')
     }else if(t.type==='key'){
       keys++;if(keys%3===0){treasures++;data.coins+=10;toast('Treasure opened! +10 coins! 🎁')}else toast(`${keys%3}/3 keys found! Keep searching! 🗝️`)
-    }else{lives--;cloudHits++;combo=0;toast(`Cloud hit ${cloudHits}! Combo reset! ☁️`);}
+    }else{lives--;cloudHits++;combo=0;cleanCookies=0;toast(`Cloud hit ${cloudHits}! Combo reset! ☁️`);}
     updateHud()
   });
   things=things.filter(t=>t.x>-70&&!t.hit);if(frame%6===0)updateHud();draw();
@@ -208,6 +227,7 @@ function endRun(cleared=false){
   if(cleared){
     distance=levels[runLevel-1].goal;updateHud();
     if(!final)data.unlocked=Math.max(data.unlocked,runLevel+1);
+    finishAdventures();
   }
   save();
   if(cleared){

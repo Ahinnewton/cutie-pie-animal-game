@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><title>Beni Life Game</title><link rel="stylesheet" href="style.css?v=20260910-11"><link rel="stylesheet" href="photo.css?v=20260910-11"><link rel="stylesheet" href="theme.css?v=20260910-11"><link rel="stylesheet" href="modern.css?v=20260910-11"><link rel="stylesheet" href="trail-upgrades.css?v=20260910-11"></head>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><title>Beni Life Game</title><link rel="stylesheet" href="style.css?v=20260910-12"><link rel="stylesheet" href="photo.css?v=20260910-12"><link rel="stylesheet" href="theme.css?v=20260910-12"><link rel="stylesheet" href="modern.css?v=20260910-12"><link rel="stylesheet" href="trail-upgrades.css?v=20260910-12"></head>
 <body><main class="shell">
   <header><div><p class="eyebrow">HOME &amp; TRAIL</p><h1>Beni Life Game</h1></div><div class="money"><span>COINS</span> <b id="coins">20</b></div></header>
   <nav class="tabs"><button id="homeTab">Beni’s Home</button><button id="runTab" class="active">Treat Trail</button></nav>
@@ -7,13 +7,14 @@
     <div id="room" class="room room-pink"><div id="decorBack" class="decor-back"></div><div id="beni" class="beni"><span class="love">♡　♥　♡</span><span id="hat"></span><img src="beni.png" alt="Beni the Coton de Tuléar"><small>BENI</small><span id="outfit"></span></div><div id="decorSide" class="decor-side"></div><div class="rug"></div></div>
     <div class="actions"><button data-care="feed">Feed</button><button data-care="wash">Wash</button><button data-care="play">Play</button><button data-care="sleep">Rest</button></div>
     <div class="shop"><h2>Beni’s Boutique</h2><div id="shopItems" class="shop-items"></div></div>
+    <section class="garden-panel" aria-labelledby="gardenTitle"><h2 id="gardenTitle">Beni’s Little Garden</h2><p>Choose a decoration to fill the next patch. Remove it for a full coin refund.</p><div id="gardenPlots" class="garden-plots"></div><div id="gardenShop" class="garden-shop"></div><p id="butterflyHome"></p><h3>Baby Animal Friends</h3><div id="animalFriends" class="animal-friends"></div></section>
   </section>
   <section id="runScene" class="scene run">
     <div class="trail-play">
     <div class="run-hud"><span>Distance <b id="distance">0</b>m</span><span>Level <b id="runLevel">1</b></span><span>Cookies 🍪 <b id="bones">0</b></span><span>Combo ✨ <b id="combo">0</b></span><span>Keys 🗝️ <b id="keys">0</b></span><span>Treasure 🎁 <b id="treasures">0</b></span><span>Cloud hits ☁️ <b id="cloudHits">0</b></span><span id="bossStatus" class="hidden boss-status">Boss 👑 <b id="bossHealth">6</b></span><span>Health <b id="lives">♥ 5 / 5</b></span></div>
-    <div class="trail-progress"><i id="trailProgress"></i></div>
+    <div class="adventure-hud"><span id="missionProgress"></span><span id="powerStatus"></span></div><div class="trail-progress"><i id="trailProgress"></i></div>
     <canvas id="game" width="900" height="430" aria-label="Beni obstacle course"></canvas>
-    <div id="runOverlay" class="overlay"><img class="big beni-photo" src="beni.png" alt="Beni"><button id="homeHint" class="home-hint">Visit <b>Beni’s Home</b> to feed, wash, and care for Beni.</button><h2>Ready for the trail?</h2><p class="trail-rules">Avoid clouds. Collect dog cookies.<br>Find keys and unlock treasure.</p><p id="levelGoal">Play levels 1–20. Clear each course to unlock the next.</p><p class="mode-hint">Speed: <b>Relaxed, Easy, Normal, Hard, or Expert.</b> Normal is selected by default.</p><div class="selectors"><label class="difficulty">Level <select id="courseLevel"></select></label><label class="difficulty">Mode <select id="difficulty"><option value="relaxed">Relaxed</option><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="expert">Expert</option></select></label></div><button id="startRun">Start level</button></div>
+    <div id="runOverlay" class="overlay"><img class="big beni-photo" src="beni.png" alt="Beni"><button id="homeHint" class="home-hint">Visit <b>Beni’s Home</b> to feed, wash, and care for Beni.</button><div id="party" class="party hidden"><img class="party-beni" src="beni.png" alt="Beni celebrating"><div id="partyFriends" class="party-friends"></div><strong>Hooray, Beni! 🎉</strong></div><h2>Ready for the trail?</h2><p id="runReward" class="run-reward"></p><p class="trail-rules">Avoid clouds. Collect dog cookies.<br>Find keys and unlock treasure.</p><p id="levelGoal">Play levels 1–20. Clear each course to unlock the next.</p><p class="mode-hint">Speed: <b>Relaxed, Easy, Normal, Hard, or Expert.</b> Normal is selected by default.</p><div class="selectors"><label class="difficulty">Level <select id="courseLevel"></select></label><label class="difficulty">Mode <select id="difficulty"><option value="relaxed">Relaxed</option><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="expert">Expert</option></select></label></div><button id="startRun">Start level</button></div>
     <div class="run-controls"><button id="jump">JUMP</button><button id="duck">DUCK</button><button id="pauseRun">PAUSE</button><button id="leaveRun">RETURN HOME</button></div><p class="tip">Press <b>Space / ↑ twice</b> to double-jump and <b>↓</b> to duck. Collect golden cookies and hearts.</p>
     </div>
     <aside class="item-guide" aria-labelledby="itemGuideTitle" lang="en">
@@ -25,8 +26,10 @@
         <div><dt>💖 Heart</dt><dd>Health +1<br>Full health? Coins +1</dd></div>
         <div><dt>🗝️ Key</dt><dd>Every 3 keys: treasure!<br>Coins +10</dd></div>
         <div><dt>🌈 Rainbow</dt><dd>Fly for 5 seconds.<br>Clouds cannot hurt you.</dd></div>
+        <div><dt>🧲 Cookie Magnet</dt><dd>Pulls nearby cookies to Beni for 8 seconds.</dd></div>
+        <div><dt>🦋 Butterfly</dt><dd>Rescue a little friend! It flies beside Beni.</dd></div>
       </dl>
     </aside>
   </section>
   <div id="toast" class="toast"></div>
-</main><script src="game.js?v=20260910-11"></script></body></html>
+</main><script src="adventures.js?v=20260910-12"></script><script src="game.js?v=20260910-12"></script></body></html>
