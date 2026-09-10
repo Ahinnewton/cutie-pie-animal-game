@@ -5,7 +5,7 @@ let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,keys=0
 const modes={
   relaxed:{start:6,max:10,ramp:300,hearts:16,spawn:1.5},
   easy:{start:9,max:14,ramp:250,hearts:12,spawn:1.25},
-  normal:{start:10.5,max:17,ramp:210,hearts:10,spawn:1.1},
+  normal:{start:10.5,max:17,ramp:210,hearts:5,spawn:1.1},
   hard:{start:13,max:20,ramp:180,hearts:8,spawn:1},
   expert:{start:14.5,max:22,ramp:160,hearts:6,spawn:.9}
 };
