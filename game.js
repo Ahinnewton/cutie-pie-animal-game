@@ -123,17 +123,41 @@ function sceneryMotif(n,x,y,variant){
 function drawBackground(){
   ctx.save();ctx.globalAlpha=1;
   const n=runLevel,sky=pastelSkies[n-1],t=levels[n-1];
-  const wash=ctx.createLinearGradient(0,0,0,368);wash.addColorStop(0,sky);wash.addColorStop(1,'#fffaf4');ctx.fillStyle=wash;ctx.fillRect(0,0,900,430);
-  // A small postcard-style title lives well above the play area.
-  ctx.fillStyle='#82778e';ctx.font='12px system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('BENI’S LITTLE WORLD  /  '+String(n).padStart(2,'0'),28,32);
-  ctx.font='20px system-ui,sans-serif';ctx.fillText(t.name,28,60);
-  // Four separate illustration spaces; no repeated hill layers or foreground clutter.
-  const positions=n===10?[250,450,630]:[250,430,610,790];
-  positions.forEach((x,i)=>sceneryMotif(n,x,162,i));
-  // A calm, open lane gives full-color items a clear silhouette.
-  ctx.fillStyle='#fffaf4';ctx.fillRect(0,225,900,143);
-  sceneryRect(0,368,900,62,sky);sceneryRect(0,368,900,5,'#ffffff');
-  for(let x=35;x<900;x+=100)sceneryOval(x,404,10,3,'#ffffff');
+  const meadow=['#d6e9cc','#f0d7e2','#cfe7d9','#ddd9ef'][n%4];
+  const wash=ctx.createLinearGradient(0,0,0,368);wash.addColorStop(0,sky);wash.addColorStop(1,'#fff5e7');ctx.fillStyle=wash;ctx.fillRect(0,0,900,430);
+  // Soft sky details and broad rolling land make a continuous landscape.
+  circle(655,65,31,'#fff3c9');circle(646,58,4,'#fff9e8');
+  for(const [x,y] of [[110,96],[390,65],[810,91]]){
+    sceneryOval(x,y,48,10,'#fffaf6');sceneryOval(x-12,y-7,22,13,'#fffaf6');sceneryOval(x+17,y-5,18,11,'#fffaf6');
+  }
+  ctx.fillStyle=n%2?'#e3e4ee':'#e2ead8';ctx.beginPath();ctx.moveTo(0,240);
+  ctx.bezierCurveTo(130,133,205,258,350,196);ctx.bezierCurveTo(490,126,600,250,735,185);ctx.quadraticCurveTo(820,160,900,209);ctx.lineTo(900,368);ctx.lineTo(0,368);ctx.closePath();ctx.fill();
+  ctx.fillStyle=meadow;ctx.beginPath();ctx.moveTo(0,275);ctx.bezierCurveTo(150,205,260,310,450,254);ctx.bezierCurveTo(640,202,745,293,900,242);ctx.lineTo(900,368);ctx.lineTo(0,368);ctx.closePath();ctx.fill();
+  // Each level keeps its own large themed landmarks.
+  [100,330,560,790].forEach((x,i)=>sceneryMotif(n,x,229+(i%2)*12,i));
+  // Cottages fill the gaps between landmarks, rather than sitting on top of them.
+  for(const [x,y] of [[215,277],[675,275]]){
+    ctx.save();ctx.translate(x,y);ctx.scale(.65,.65);sceneryHouse(n%2?'#e9b8c9':'#c7bcdf');ctx.restore();
+    sceneryLine([[x,y+21],[x-12,y+42],[x+8,y+67]],'#f6e9d7',9);
+  }
+  ctx.save();ctx.translate(445,278);ctx.scale(.55,.55);sceneryMotif(1,0,0,0);ctx.restore();
+  // Low hedges and tiny flowers belong to the scenery, below the item lane.
+  for(let i=0;i<9;i++){
+    const x=30+i*105;
+    sceneryOval(x,350,26,9,n%2?'#bdd9bd':'#c7d9c5');
+    sceneryOval(x+19,349,16,10,'#d3e4c9');
+  }
+  // A translucent wash keeps moving items crisp without erasing the landscape.
+  const haze=ctx.createLinearGradient(0,220,0,368);haze.addColorStop(0,'rgba(255,250,244,0)');haze.addColorStop(.65,'rgba(255,250,244,.25)');haze.addColorStop(1,'rgba(255,250,244,.08)');ctx.fillStyle=haze;ctx.fillRect(0,220,900,148);
+  sceneryRect(0,368,900,62,'#f4e7d5');sceneryRect(0,368,900,5,'#fff9e9');
+  sceneryRect(0,413,900,17,meadow);
+  for(let i=0;i<15;i++){
+    const x=20+i*62,y=393+(i%3)*8;
+    ctx.save();ctx.translate(x,y);ctx.scale(.38,.38);sceneryLine([[0,0],[0,20]],'#9cbd9b',3);sceneryFlower(0,0,['#efb7cd','#c9bce6','#f1d694'][i%3]);ctx.restore();
+  }
+  for(let x=52;x<900;x+=124)sceneryOval(x,386,9,2,'#fff9ee');
+  ctx.fillStyle='#82778e';ctx.font='11px system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('BENI’S LITTLE WORLD  /  '+String(n).padStart(2,'0'),22,25);
+  ctx.font='18px system-ui,sans-serif';ctx.fillText(t.name,22,48);
   ctx.restore();
 }
 function drawBoss(){
