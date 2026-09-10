@@ -67,9 +67,10 @@ function finishAdventures(){
 }
 function drawButterfly(x,y,colors,phase){
   ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(frame/14+phase)*.12);const flap=.86+Math.sin(frame/5+phase)*.14;
-  ctx.globalAlpha=.86;ctx.fillStyle=colors[0];ctx.beginPath();ctx.ellipse(-4,-2,5*flap,4,Math.PI*.12,0,Math.PI*2);ctx.ellipse(4,-2,5*flap,4,-Math.PI*.12,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=.72;ctx.fillStyle=colors[1];ctx.beginPath();ctx.ellipse(-3,3,3.5*flap,2.7,Math.PI*.16,0,Math.PI*2);ctx.ellipse(3,3,3.5*flap,2.7,-Math.PI*.16,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=.9;ctx.fillStyle='#9a8e9a';ctx.beginPath();ctx.roundRect(-1, -3, 2, 8, 1);ctx.fill();ctx.restore();
+  const outline='#5f5361';ctx.globalAlpha=.86;ctx.fillStyle=colors[0];ctx.strokeStyle=outline;ctx.lineWidth=1.05;ctx.beginPath();ctx.ellipse(-4,-2,5*flap,4,Math.PI*.12,0,Math.PI*2);ctx.ellipse(4,-2,5*flap,4,-Math.PI*.12,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.globalAlpha=.72;ctx.fillStyle=colors[1];ctx.beginPath();ctx.ellipse(-3,3,3.5*flap,2.7,Math.PI*.16,0,Math.PI*2);ctx.ellipse(3,3,3.5*flap,2.7,-Math.PI*.16,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.globalAlpha=.9;ctx.fillStyle=outline;ctx.beginPath();ctx.roundRect(-1, -3, 2, 8, 1);ctx.fill();
+  ctx.strokeStyle=outline;ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(-.5,-2.5);ctx.quadraticCurveTo(-2.5,-6,-4,-6.5);ctx.moveTo(.5,-2.5);ctx.quadraticCurveTo(2.5,-6,4,-6.5);ctx.stroke();ctx.beginPath();ctx.arc(-4,-6.5,.7,0,Math.PI*2);ctx.arc(4,-6.5,.7,0,Math.PI*2);ctx.fill();ctx.restore();
 }
 function drawCompanions(){
   ctx.save();ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.shadowColor='#756684';ctx.shadowBlur=2;ctx.textAlign='center';ctx.textBaseline='middle';
