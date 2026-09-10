@@ -11,26 +11,26 @@ const modes={
 };
 function trailSpeed(mode,level,travel){return Math.min(mode.max,mode.start+(level-1)*.18+travel/mode.ramp)*.968}
 const levels=[
-  {goal:400,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
-  {goal:550,name:'Candy Sunset',sky:'#ffc2cf',ground:'#e8a6cc',far:'#cb79ac',accent:'#fff0b8'},
-  {goal:700,name:'Magic Forest',sky:'#9edbc3',ground:'#75ae78',far:'#477d5d',accent:'#d8f5c4'},
-  {goal:850,name:'Moonlit Hills',sky:'#8d91d9',ground:'#7774a8',far:'#55537f',accent:'#f8edb0'},
-  {goal:1100,name:'Rainbow Challenge',sky:'#c7b5ff',ground:'#8ed8b2',far:'#6aa38a',accent:'#ffd1e6'},
-  {"goal":1160,"name":"Starlight Garden","sky":"#777bb7","ground":"#799b86","far":"#555982","accent":"#fff3bd"},
-  {"goal":1220,"name":"Crystal Lake","sky":"#9fd8e8","ground":"#75aaa1","far":"#668fa4","accent":"#d9fbff"},
-  {"goal":1280,"name":"Sakura Village","sky":"#f7c9d7","ground":"#9eb985","far":"#c78fa3","accent":"#fff0ca"},
-  {"goal":1340,"name":"Aurora Valley","sky":"#4b5985","ground":"#728e91","far":"#4a5c79","accent":"#d8fff0"},
-  {"goal":1400,"name":"Beni Dreamland","sky":"#8c7db8","ground":"#8cb39e","far":"#655b91","accent":"#fff4bf"},
-  {"goal":1460,"name":"Seashell Beach","sky":"#80d9ef","ground":"#efd39d","far":"#59b6cc","accent":"#fff0d4","motif":"🐚","landmark":"🏝️"},
-  {"goal":1520,"name":"Cactus Canyon","sky":"#f0bb89","ground":"#cd976b","far":"#b27155","accent":"#fae1ae","motif":"🌵","landmark":"🏜️"},
-  {"goal":1580,"name":"Snowflake Summit","sky":"#bad9f3","ground":"#e9f2fa","far":"#869eb9","accent":"#ffffff","motif":"❄️","landmark":"🏔️"},
-  {"goal":1640,"name":"Sunflower Farm","sky":"#b7e8e5","ground":"#bbcc79","far":"#91aa58","accent":"#ffdf70","motif":"🌻","landmark":"🏡"},
-  {"goal":1700,"name":"Lantern Festival","sky":"#555982","ground":"#b98c9c","far":"#777099","accent":"#ffd599","motif":"🏮","landmark":"⛩️"},
-  {"goal":1760,"name":"Mushroom Hollow","sky":"#96c5b0","ground":"#9ab08a","far":"#5c8270","accent":"#efb5ad","motif":"🍄","landmark":"🪵"},
-  {"goal":1820,"name":"Coral Cove","sky":"#75c9cf","ground":"#d6bcab","far":"#528fa8","accent":"#ffb5ad","motif":"🪸","landmark":"🐠"},
-  {"goal":1880,"name":"Clockwork Town","sky":"#d4c5ac","ground":"#b39f84","far":"#8b7e73","accent":"#fce0a5","motif":"⚙️","landmark":"🕰️"},
-  {"goal":1940,"name":"Bubble Sky","sky":"#c4def7","ground":"#bbaee3","far":"#978ac7","accent":"#f8ecff","motif":"🫧","landmark":"🎈"},
-  {"goal":2000,"name":"Royal Cookie Castle","sky":"#f1d7a5","ground":"#cda6b8","far":"#a786af","accent":"#fff5d3","motif":"🍪","landmark":"🏰"}
+  {goal:360,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
+  {goal:500,name:'Candy Sunset',sky:'#ffc2cf',ground:'#e8a6cc',far:'#cb79ac',accent:'#fff0b8'},
+  {goal:630,name:'Magic Forest',sky:'#9edbc3',ground:'#75ae78',far:'#477d5d',accent:'#d8f5c4'},
+  {goal:770,name:'Moonlit Hills',sky:'#8d91d9',ground:'#7774a8',far:'#55537f',accent:'#f8edb0'},
+  {goal:990,name:'Rainbow Challenge',sky:'#c7b5ff',ground:'#8ed8b2',far:'#6aa38a',accent:'#ffd1e6'},
+  {"goal":1040,"name":"Starlight Garden","sky":"#777bb7","ground":"#799b86","far":"#555982","accent":"#fff3bd"},
+  {"goal":1100,"name":"Crystal Lake","sky":"#9fd8e8","ground":"#75aaa1","far":"#668fa4","accent":"#d9fbff"},
+  {"goal":1150,"name":"Sakura Village","sky":"#f7c9d7","ground":"#9eb985","far":"#c78fa3","accent":"#fff0ca"},
+  {"goal":1210,"name":"Aurora Valley","sky":"#4b5985","ground":"#728e91","far":"#4a5c79","accent":"#d8fff0"},
+  {"goal":1260,"name":"Beni Dreamland","sky":"#8c7db8","ground":"#8cb39e","far":"#655b91","accent":"#fff4bf"},
+  {"goal":1310,"name":"Seashell Beach","sky":"#80d9ef","ground":"#efd39d","far":"#59b6cc","accent":"#fff0d4","motif":"🐚","landmark":"🏝️"},
+  {"goal":1370,"name":"Cactus Canyon","sky":"#f0bb89","ground":"#cd976b","far":"#b27155","accent":"#fae1ae","motif":"🌵","landmark":"🏜️"},
+  {"goal":1420,"name":"Snowflake Summit","sky":"#bad9f3","ground":"#e9f2fa","far":"#869eb9","accent":"#ffffff","motif":"❄️","landmark":"🏔️"},
+  {"goal":1480,"name":"Sunflower Farm","sky":"#b7e8e5","ground":"#bbcc79","far":"#91aa58","accent":"#ffdf70","motif":"🌻","landmark":"🏡"},
+  {"goal":1530,"name":"Lantern Festival","sky":"#555982","ground":"#b98c9c","far":"#777099","accent":"#ffd599","motif":"🏮","landmark":"⛩️"},
+  {"goal":1580,"name":"Mushroom Hollow","sky":"#96c5b0","ground":"#9ab08a","far":"#5c8270","accent":"#efb5ad","motif":"🍄","landmark":"🪵"},
+  {"goal":1640,"name":"Coral Cove","sky":"#75c9cf","ground":"#d6bcab","far":"#528fa8","accent":"#ffb5ad","motif":"🪸","landmark":"🐠"},
+  {"goal":1690,"name":"Clockwork Town","sky":"#d4c5ac","ground":"#b39f84","far":"#8b7e73","accent":"#fce0a5","motif":"⚙️","landmark":"🕰️"},
+  {"goal":1750,"name":"Bubble Sky","sky":"#c4def7","ground":"#bbaee3","far":"#978ac7","accent":"#f8ecff","motif":"🫧","landmark":"🎈"},
+  {"goal":1800,"name":"Royal Cookie Castle","sky":"#f1d7a5","ground":"#cda6b8","far":"#a786af","accent":"#fff5d3","motif":"🍪","landmark":"🏰"}
 ];
 data.unlocked=Math.min(levels.length,Math.max(1,data.unlocked||1));
 const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{id:'nohat',icon:'✕',name:'No Hat',price:0,type:'hat'},{id:'bow',icon:'🎀',name:'Pink Bow',price:8,type:'hat'},{id:'crown',icon:'👑',name:'Crown',price:18,type:'hat'},{id:'cap',icon:'🧢',name:'Cool Cap',price:15,type:'hat'},{id:'scarf',icon:'🧣',name:'Scarf',price:12,type:'outfit'},{id:'vest',icon:'🦺',name:'Adventure',price:25,type:'outfit'},{id:'blue',icon:'🩵',name:'Blue Room',price:20,type:'room'},{id:'space',icon:'🚀',name:'Space Room',price:35,type:'room'},{id:'teddy',icon:'🧸',name:'Teddy Decor',price:10,type:'decor'}];
