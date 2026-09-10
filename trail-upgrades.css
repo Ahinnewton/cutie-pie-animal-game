@@ -76,3 +76,26 @@ button:focus-visible, select:focus-visible { outline: 2px solid #506451; outline
   text-align: center;
 }
 .toast.show { translate: -50% 0; visibility: visible; }
+
+/* Small, always-visible guide beside the trail. */
+.run { display: grid; grid-template-columns: minmax(0, 1fr) 180px; }
+.trail-play { position: relative; min-width: 0; }
+.item-guide {
+  padding: 18px 12px;
+  border-left: 1px solid var(--line);
+  background: var(--paper);
+  color: #454d48;
+  font-size: .75rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.item-guide h2 { margin: 0 0 14px; font-size: .85rem; font-weight: 600; }
+.item-guide dl { display: grid; gap: 14px; margin: 0; }
+.item-guide dt { font-weight: 600; }
+.item-guide dd { margin: 2px 0 0; color: #596057; }
+@media (max-width: 700px) {
+  .run { grid-template-columns: minmax(0, 1fr); }
+  .item-guide { border-left: 0; border-top: 1px solid var(--line); padding: 12px; }
+  .item-guide h2 { margin-bottom: 8px; }
+  .item-guide dl { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
