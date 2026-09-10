@@ -2,20 +2,42 @@ const $=s=>document.querySelector(s), canvas=$('#game'),ctx=canvas.getContext('2
 let data=JSON.parse(localStorage.getItem('beniBigDay')||'null')||{coins:20,hunger:72,clean:70,happy:76,owned:[]};
 
 let running=false,paused=false,frame=0,speed=6,distance=0,bones=0,combo=0,keys=0,treasures=0,flightFrames=0,bossHP=6,cloudHits=0,lives=3,beni,things=[],raf,ducking=false,runLevel=1,difficulty='normal',runResult=null;
-const modes={easy:{start:9,max:16,ramp:225,hearts:8,spawn:1.15},normal:{start:10.5,max:19,ramp:168,hearts:6,spawn:1},hard:{start:13,max:23,ramp:122,hearts:4,spawn:.82}};
+const modes={
+  relaxed:{start:6,max:10,ramp:300,hearts:16,spawn:1.5},
+  easy:{start:9,max:14,ramp:250,hearts:12,spawn:1.25},
+  normal:{start:10.5,max:17,ramp:210,hearts:10,spawn:1.1},
+  hard:{start:13,max:20,ramp:180,hearts:8,spawn:1},
+  expert:{start:14.5,max:22,ramp:160,hearts:6,spawn:.9}
+};
+function trailSpeed(mode,level,travel){return Math.min(mode.max,mode.start+(level-1)*.18+travel/mode.ramp)*.8}
 const levels=[
   {goal:400,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
   {goal:550,name:'Candy Sunset',sky:'#ffc2cf',ground:'#e8a6cc',far:'#cb79ac',accent:'#fff0b8'},
   {goal:700,name:'Magic Forest',sky:'#9edbc3',ground:'#75ae78',far:'#477d5d',accent:'#d8f5c4'},
   {goal:850,name:'Moonlit Hills',sky:'#8d91d9',ground:'#7774a8',far:'#55537f',accent:'#f8edb0'},
-  {goal:1100,name:'Rainbow Challenge',sky:'#c7b5ff',ground:'#8ed8b2',far:'#6aa38a',accent:'#ffd1e6'}
+  {goal:1100,name:'Rainbow Challenge',sky:'#c7b5ff',ground:'#8ed8b2',far:'#6aa38a',accent:'#ffd1e6'},
+  {"goal":1160,"name":"Starlight Garden","sky":"#777bb7","ground":"#799b86","far":"#555982","accent":"#fff3bd"},
+  {"goal":1220,"name":"Crystal Lake","sky":"#9fd8e8","ground":"#75aaa1","far":"#668fa4","accent":"#d9fbff"},
+  {"goal":1280,"name":"Sakura Village","sky":"#f7c9d7","ground":"#9eb985","far":"#c78fa3","accent":"#fff0ca"},
+  {"goal":1340,"name":"Aurora Valley","sky":"#4b5985","ground":"#728e91","far":"#4a5c79","accent":"#d8fff0"},
+  {"goal":1400,"name":"Beni Dreamland","sky":"#8c7db8","ground":"#8cb39e","far":"#655b91","accent":"#fff4bf"},
+  {"goal":1460,"name":"Seashell Beach","sky":"#80d9ef","ground":"#efd39d","far":"#59b6cc","accent":"#fff0d4","motif":"🐚","landmark":"🏝️"},
+  {"goal":1520,"name":"Cactus Canyon","sky":"#f0bb89","ground":"#cd976b","far":"#b27155","accent":"#fae1ae","motif":"🌵","landmark":"🏜️"},
+  {"goal":1580,"name":"Snowflake Summit","sky":"#bad9f3","ground":"#e9f2fa","far":"#869eb9","accent":"#ffffff","motif":"❄️","landmark":"🏔️"},
+  {"goal":1640,"name":"Sunflower Farm","sky":"#b7e8e5","ground":"#bbcc79","far":"#91aa58","accent":"#ffdf70","motif":"🌻","landmark":"🏡"},
+  {"goal":1700,"name":"Lantern Festival","sky":"#555982","ground":"#b98c9c","far":"#777099","accent":"#ffd599","motif":"🏮","landmark":"⛩️"},
+  {"goal":1760,"name":"Mushroom Hollow","sky":"#96c5b0","ground":"#9ab08a","far":"#5c8270","accent":"#efb5ad","motif":"🍄","landmark":"🪵"},
+  {"goal":1820,"name":"Coral Cove","sky":"#75c9cf","ground":"#d6bcab","far":"#528fa8","accent":"#ffb5ad","motif":"🪸","landmark":"🐠"},
+  {"goal":1880,"name":"Clockwork Town","sky":"#d4c5ac","ground":"#b39f84","far":"#8b7e73","accent":"#fce0a5","motif":"⚙️","landmark":"🕰️"},
+  {"goal":1940,"name":"Bubble Sky","sky":"#c4def7","ground":"#bbaee3","far":"#978ac7","accent":"#f8ecff","motif":"🫧","landmark":"🎈"},
+  {"goal":2000,"name":"Royal Cookie Castle","sky":"#f1d7a5","ground":"#cda6b8","far":"#a786af","accent":"#fff5d3","motif":"🍪","landmark":"🏰"}
 ];
 data.unlocked=Math.min(levels.length,Math.max(1,data.unlocked||1));
 const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{id:'nohat',icon:'✕',name:'No Hat',price:0,type:'hat'},{id:'bow',icon:'🎀',name:'Pink Bow',price:8,type:'hat'},{id:'crown',icon:'👑',name:'Crown',price:18,type:'hat'},{id:'cap',icon:'🧢',name:'Cool Cap',price:15,type:'hat'},{id:'scarf',icon:'🧣',name:'Scarf',price:12,type:'outfit'},{id:'vest',icon:'🦺',name:'Adventure',price:25,type:'outfit'},{id:'blue',icon:'🩵',name:'Blue Room',price:20,type:'room'},{id:'space',icon:'🚀',name:'Space Room',price:35,type:'room'},{id:'teddy',icon:'🧸',name:'Teddy Decor',price:10,type:'decor'}];
 function save(){localStorage.setItem('beniBigDay',JSON.stringify(data));render()}
 function render(){ $('#coins').textContent=data.coins;['hunger','clean','happy'].forEach(k=>$('#'+k).style.width=data[k]+'%');const box=$('#shopItems');box.innerHTML='';shop.forEach(item=>{const b=document.createElement('button'),owned=data.owned.includes(item.id);b.className=owned?'owned':'';b.innerHTML=`${item.icon}<br>${item.name}<br><small>${owned?'USE':`🪙 ${item.price}`}</small>`;b.onclick=()=>buy(item);box.append(b)});refreshLevels()}
 function refreshLevels(){const s=$('#courseLevel');if(!s)return;const chosen=Math.min(Number(s.value)||data.unlocked,data.unlocked);s.innerHTML='';levels.forEach((l,i)=>{const o=document.createElement('option');o.value=i+1;o.disabled=i+1>data.unlocked;o.textContent=`${i+1}. ${l.name}${o.disabled?' — LOCKED':''}`;s.append(o)});s.value=chosen;showGoal()}
-function showGoal(){if(runResult)return;const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=n===10?`Finish distance: ${l.goal} m · Defeat the Cloud King`:`${l.name} · Finish distance: ${l.goal} m`}
+function showGoal(){if(runResult)return;const n=Number($('#courseLevel')?.value||1),l=levels[n-1];if(l)$('#levelGoal').textContent=`${l.name} · Level ${n} of ${levels.length} · Finish distance: ${l.goal} m`}
 function toast(t){if(running&&!paused&&Date.now()-(toast.lastRunMessage||0)<3000)return;if(running)toast.lastRunMessage=Date.now();const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1800)}
 function buy(i){if(!data.owned.includes(i.id)){if(data.coins<i.price)return toast('Earn more coins on Treat Trail! 🦴');data.coins-=i.price;data.owned.push(i.id);toast(`${i.name} unlocked! ✨`)}use(i);save()}
 function use(i){if(i.type==='hat')$('#hat').textContent=i.id==='nohat'?'':i.icon;if(i.type==='outfit')$('#outfit').textContent=i.id==='nooutfit'?'':i.icon;if(i.type==='room')$('#room').className=`room room-${i.id}`;if(i.type==='decor')$('#decorSide').textContent=i.icon;toast(i.id.startsWith('no')?'Back to fluffy Beni! 🤎':`Beni loves the ${i.name}! 💖`)}
@@ -23,10 +45,10 @@ document.querySelectorAll('[data-care]').forEach(b=>b.onclick=()=>{const a=b.dat
 setInterval(()=>{data.hunger=Math.max(10,data.hunger-1);data.clean=Math.max(10,data.clean-.5);data.happy=Math.max(10,data.happy-.4);save()},12000);
 function stopRun(){if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');runResult=null;$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal()}
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
-function resetRun(){runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=(m.start+(runLevel-1)*1.25)*.8;distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
-function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent='● '.repeat(lives)+'○ '.repeat(Math.max(0,max-lives));$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
+function resetRun(){runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=trailSpeed(m,runLevel,0);distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
+function updateHud(){$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent=`♥ ${lives} / ${max}`;$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
-function spawnThing(){const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=3&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(runLevel>=4&&r<goldenChance+.05)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
+function spawnThing(){const gap=Math.max(160,modes[difficulty].max*.8*42);if(things.some(t=>930-(t.x+t.w)<gap))return;const r=Math.random(),goldenChance=runLevel===10?.16:.13;if(runLevel>=5&&r<.04)things.push({type:'rainbow',x:930,y:245,w:44,h:44,hit:false});else if(runLevel>=3&&r<.09)things.push({type:'key',x:930,y:235+Math.random()*65,w:40,h:40,hit:false});else if(runLevel>=3&&r<goldenChance)things.push({type:'golden',x:930,y:225+Math.random()*75,w:40,h:40,hit:false});else if(r<goldenChance+.12)things.push({type:'heart',x:930,y:245+Math.random()*55,w:38,h:38,hit:false});else if(r<.62)things.push({type:'cookie',x:930,y:230+Math.random()*75,w:36,h:36,hit:false});else if(r<.83)things.push({type:'cloud',x:930,y:337,w:52,h:43,hit:false});else things.push({type:'cloud',x:930,y:275,w:52,h:43,hit:false})}
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
@@ -86,12 +108,28 @@ function drawBackground(){
     for(let i=0;i<28;i++)circle((i*137)%900,24+(i*73)%230,1.5+(i%2),'#eafff8');
     ['#76d8c1','#8ac9eb','#b6a3e7'].forEach((c,i)=>{ctx.strokeStyle=c;ctx.globalAlpha=.35;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(-20,70+i*28);ctx.bezierCurveTo(230,15+i*24,570,145-i*18,930,50+i*25);ctx.stroke()});ctx.globalAlpha=1;
     ctx.fillStyle='#536581';for(let x=-50;x<1000;x+=210){ctx.beginPath();ctx.moveTo(x,375);ctx.lineTo(x+105,185);ctx.lineTo(x+210,375);ctx.fill();ctx.fillStyle='#dce8e9';ctx.beginPath();ctx.moveTo(x+72,245);ctx.lineTo(x+105,185);ctx.lineTo(x+140,248);ctx.fill();ctx.fillStyle='#536581'}
-  }else{
+  }else if(runLevel===10){
     circle(740,76,48,'#fff3c1');for(let i=0;i<30;i++)circle((i*127)%900,25+(i*59)%245,2+(i%2),i%3?'#fff1ca':'#e1cfff');
     const dream=['#e89bbd','#eabe85','#9fc8dd','#ac9bd6'];dream.forEach((c,i)=>{ctx.strokeStyle=c;ctx.lineWidth=11;ctx.beginPath();ctx.arc(735,250,128-i*12,Math.PI,0);ctx.stroke()});
     ctx.fillStyle='#675b8f';for(let x=-20;x<980;x+=180){ctx.beginPath();ctx.arc(x,372,115,Math.PI,0);ctx.fill()}
     [95,290,620,820].forEach((x,i)=>tree(x,375,[.72,.9,.82,.68][i],i,'#566f70','#78988a'));
     ctx.fillStyle='#f2dfeb';ctx.fillRect(405,285,105,90);ctx.fillStyle='#b890c2';ctx.fillRect(420,255,22,120);ctx.fillRect(475,245,22,130);ctx.beginPath();ctx.arc(431,255,11,Math.PI,0);ctx.arc(486,245,11,Math.PI,0);ctx.fill();ctx.fillStyle='#876b91';ctx.fillRect(450,335,18,40)
+  }
+  if(runLevel>10){
+    circle(760,72,34,t.accent);
+    ctx.fillStyle=t.far;
+    for(let i=0;i<6;i++){
+      const x=i*180-40,h=60+((i*37+runLevel*23)%100);
+      ctx.beginPath();ctx.moveTo(x,368);
+      if(runLevel%3===0){ctx.lineTo(x+90,368-h);ctx.lineTo(x+180,368)}
+      else if(runLevel%3===1){ctx.quadraticCurveTo(x+90,368-h*2,x+180,368)}
+      else{ctx.lineTo(x,368-h);ctx.lineTo(x+120,368-h);ctx.lineTo(x+120,368)}
+      ctx.fill();
+    }
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='100px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText(t.landmark,690,245);
+    ctx.font='46px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
+    for(let i=0;i<5;i++)ctx.fillText(t.motif,65+i*155,285-((i*19+runLevel*7)%55));
   }
   ctx.fillStyle=t.ground;ctx.fillRect(0,368,900,45);
   ctx.fillStyle='rgba(255,255,255,.22)';ctx.fillRect(0,368,900,8);
@@ -119,9 +157,9 @@ function loop(){
   if(!running)return;
   if(paused){raf=requestAnimationFrame(loop);return}
   frame++;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
-  const interval=Math.max(24,Math.floor((94-speed*2.7-runLevel*5)*m.spawn));
-  if(frame%interval===0){spawnThing();const comboChance=Math.max(0,(runLevel-1)*.09);if(Math.random()<comboChance)setTimeout(()=>running&&!paused&&spawnThing(),230);if(runLevel>=5&&Math.random()<.18)setTimeout(()=>running&&!paused&&spawnThing(),440)}
-  speed=Math.min(m.max+runLevel*1.8,m.start+(runLevel-1)*1.25+distance/(m.ramp-runLevel*10))*.8;
+  const interval=Math.max(48,Math.floor((88-Math.min(runLevel,20))*m.spawn));
+  if(frame%interval===0)spawnThing();
+  speed=trailSpeed(m,runLevel,distance);
   if(flightFrames>0){flightFrames--;beni.y=235;beni.vy=0;beni.ground=false;if(flightFrames===0)toast('Rainbow flight finished—land safely! 🌈')}
   else{beni.vy+=1.6;beni.y+=beni.vy;if(beni.y>=330){beni.y=330;beni.vy=0;beni.ground=true;beni.jumps=0}}
   const box={x:beni.x+8,y:beni.y+(ducking?15:-35),w:52,h:ducking?35:62};
@@ -141,7 +179,7 @@ function loop(){
     updateHud()
   });
   things=things.filter(t=>t.x>-70&&!t.hit);if(frame%6===0)updateHud();draw();
-  if(lives<=0)return endRun(false);if(distance>=cfg.goal&&(runLevel!==10||bossHP<=0))return endRun(true);raf=requestAnimationFrame(loop)
+  if(lives<=0)return endRun(false);if(distance>=cfg.goal)return endRun(true);raf=requestAnimationFrame(loop)
 }
 function togglePause(){if(!running)return;paused=!paused;$('#pauseRun').textContent=paused?'RESUME':'PAUSE';toast(paused?'Game paused 💛':'Go, Beni! 🐾')}
 function startRun(){resetRun();running=true;$('#runOverlay').classList.add('hidden');loop()}
