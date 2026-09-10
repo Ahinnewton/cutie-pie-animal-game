@@ -9,7 +9,9 @@ const modes={
   hard:{start:13,max:20,ramp:180,hearts:8,spawn:1},
   expert:{start:14.5,max:22,ramp:160,hearts:6,spawn:.9}
 };
-function trailSpeed(mode,level,travel){return Math.min(mode.max,mode.start+(level-1)*.18+travel/mode.ramp)*.968}
+// Keep the trail 25% faster than the previous pace while preserving obstacle spacing.
+const TRAIL_SPEED_SCALE=1.21;
+function trailSpeed(mode,level,travel){return Math.min(mode.max,mode.start+(level-1)*.18+travel/mode.ramp)*TRAIL_SPEED_SCALE}
 const levels=[
   {goal:360,name:'Sunny Park',sky:'#a9e7ff',ground:'#b5ea8d',far:'#91bd75',accent:'#fff4a8'},
   {goal:500,name:'Candy Sunset',sky:'#ffc2cf',ground:'#e8a6cc',far:'#cb79ac',accent:'#fff0b8'},
@@ -50,7 +52,7 @@ function resetRun(){resetAdventures();runResult=null;toast.lastRunMessage=0;clea
 function updateHud(){updateAdventures();$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent=`♥ ${lives} / ${max}`;$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
 function spawnThing(){
-  const gap=Math.max(160,modes[difficulty].max*.968*42);
+  const gap=Math.max(160,modes[difficulty].max*TRAIL_SPEED_SCALE*42);
   if(things.some(t=>930-(t.x+t.w)<gap))return;
   spawnCount++;const r=Math.random();let type;
   if(!butterflyRescued&&spawnCount%9===3)type='butterfly';
