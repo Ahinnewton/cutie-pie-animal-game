@@ -58,6 +58,7 @@ function spawnThing(){
   if(data.butterflyCount+things.filter(t=>t.type==='butterfly'&&!t.hit).length<MAX_BUTTERFLIES&&spawnCount%9===3)type='butterfly';
   else if(spawnCount%20===16)type='magnet';
   else if(runLevel>=5&&r<.02)type='rainbow';
+  else if(spawnCount%3===0)type='cloud';
   else if(r<.13)type='key';
   else if(r<.20)type='golden';
   else if(r<.30)type='heart';
@@ -65,7 +66,9 @@ function spawnThing(){
   else type='cloud';
   const sizes={cloud:[52,43],cookie:[36,36],heart:[38,38],rainbow:[44,44]};
   const [w,h]=sizes[type]||[40,40];
-  const y=type==='cloud'?(Math.random()<.5?337:275):type==='butterfly'?270:235+Math.random()*65;
+  // Both heights hit standing Beni. Low clouds require jumping;
+  // head-height clouds leave room beneath them for ducking.
+  const y=type==='cloud'?(Math.random()<.6?326+Math.random()*8:288+Math.random()*8):type==='butterfly'?270:235+Math.random()*65;
   things.push({type,x:930,y,w,h,hit:false});
 }
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
