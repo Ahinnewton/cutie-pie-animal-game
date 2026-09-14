@@ -56,8 +56,8 @@ function spawnThing(){
   if(things.some(t=>930-(t.x+t.w)<gap))return;
   spawnCount++;const r=Math.random();let type;
   if(!butterflyRescued&&spawnCount%9===3)type='butterfly';
-  else if(spawnCount%10===6)type='magnet';
-  else if(runLevel>=5&&r<.04)type='rainbow';
+  else if(spawnCount%20===16)type='magnet';
+  else if(runLevel>=5&&r<.02)type='rainbow';
   else if(r<.13)type='key';
   else if(r<.20)type='golden';
   else if(r<.30)type='heart';
