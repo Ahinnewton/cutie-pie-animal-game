@@ -188,9 +188,22 @@ function drawBoss(){
   ctx.fillStyle='#40394c';ctx.fillRect(-54,68,108,10);ctx.fillStyle='#f08aac';ctx.fillRect(-52,70,104*(bossHP/6),6);ctx.restore()
 }
 function draw(){drawBackground();drawBoss();ctx.save();ctx.fillStyle='rgba(34,47,39,.22)';ctx.beginPath();ctx.ellipse(beni.x+34,374,31,8,0,0,Math.PI*2);ctx.fill();const ph=ducking?48:72,py=ducking?beni.y+4:beni.y-42;if(flightFrames>0){ctx.strokeStyle='#697e65';ctx.lineWidth=3;ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2+5,0,Math.PI*2);ctx.stroke()}ctx.beginPath();ctx.arc(beni.x+34,py+ph/2,ph/2,0,Math.PI*2);ctx.clip();if(beniPhoto.complete)ctx.drawImage(beniPhoto,beni.x,py,68,ph);ctx.restore();drawCompanions();things.forEach(drawThing)}
-function loop(){
+// Simulate at 60 steps per second, independently of the screen refresh rate.
+const STEP_MS=1000/60;
+let lastTick=null,elapsedMs=0;
+function resetClock(){lastTick=null;elapsedMs=0}
+document.addEventListener('visibilitychange',resetClock);
+function loop(now){
   if(!running)return;
-  if(paused){raf=requestAnimationFrame(loop);return}
+  if(paused||document.hidden){resetClock();raf=requestAnimationFrame(loop);return}
+  if(lastTick===null)lastTick=now;
+  // Limit catch-up after a long stall so Beni cannot suddenly rush forward.
+  elapsedMs+=Math.min(Math.max(now-lastTick,0),250);lastTick=now;
+  while(elapsedMs+1e-7>=STEP_MS&&running){elapsedMs-=STEP_MS;updateRun()}
+  draw();
+  if(running)raf=requestAnimationFrame(loop)
+}
+function updateRun(){
   frame++;if(magnetFrames>0)magnetFrames--;const m=modes[difficulty],cfg=levels[runLevel-1];distance+=speed/45;
   const interval=Math.max(48,Math.floor((88-Math.min(runLevel,20))*m.spawn));
   if(frame%interval===0)spawnThing();
@@ -215,11 +228,11 @@ function loop(){
     }else{lives--;cloudHits++;combo=0;cleanCookies=0;toast(`Cloud hit ${cloudHits}! Combo reset! ☁️`);}
     updateHud()
   });
-  things=things.filter(t=>t.x>-70&&!t.hit);if(frame%6===0)updateHud();draw();
-  if(lives<=0)return endRun(false);if(distance>=cfg.goal)return endRun(true);raf=requestAnimationFrame(loop)
+  things=things.filter(t=>t.x>-70&&!t.hit);if(frame%6===0)updateHud();
+  if(lives<=0)return endRun(false);if(distance>=cfg.goal)return endRun(true)
 }
-function togglePause(){if(!running)return;paused=!paused;$('#pauseRun').textContent=paused?'RESUME':'PAUSE';toast(paused?'Game paused 💛':'Go, Beni! 🐾')}
-function startRun(){resetRun();running=true;$('#runOverlay').classList.add('hidden');loop()}
+function togglePause(){if(!running)return;paused=!paused;resetClock();$('#pauseRun').textContent=paused?'RESUME':'PAUSE';toast(paused?'Game paused 💛':'Go, Beni! 🐾')}
+function startRun(){resetRun();resetClock();running=true;$('#runOverlay').classList.add('hidden');raf=requestAnimationFrame(loop)}
 function endRun(cleared=false){
   running=false;paused=false;cancelAnimationFrame(raf);
   runResult=cleared?'cleared':'failed';
