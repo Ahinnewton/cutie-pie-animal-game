@@ -55,7 +55,7 @@ function spawnThing(){
   const gap=Math.max(160,modes[difficulty].max*TRAIL_SPEED_SCALE*42);
   if(things.some(t=>930-(t.x+t.w)<gap))return;
   spawnCount++;const r=Math.random();let type;
-  if(!butterflyRescued&&spawnCount%9===3)type='butterfly';
+  if(data.butterflyCount+things.filter(t=>t.type==='butterfly'&&!t.hit).length<MAX_BUTTERFLIES&&spawnCount%9===3)type='butterfly';
   else if(spawnCount%20===16)type='magnet';
   else if(runLevel>=5&&r<.02)type='rainbow';
   else if(r<.13)type='key';
@@ -219,7 +219,7 @@ function updateRun(){
       const prize=t.type==='golden'?3:1;bones+=prize;runCookies+=prize;cleanCookies+=prize;data.coins+=prize;combo++;
       if(t.type==='golden'&&runLevel===10&&bossHP>0){bossHP--;toast(`Star hit! Cloud King has ${bossHP} power left! 👑`)}
       else if(combo%5===0){data.coins+=2;toast(`${combo} cookie combo! +2 bonus coins! ✨`)}else if(t.type==='golden')toast('Golden cookie: +3 coins')
-    }else if(t.type==='magnet'){magnetFrames=480;toast('Cookie magnet! 8 seconds! 🧲')}else if(t.type==='butterfly'){butterflyRescued=true;data.butterfly=true;toast('Butterfly rescued! A new little friend 🦋')}else if(t.type==='heart'){
+    }else if(t.type==='magnet'){magnetFrames=480;toast('Cookie magnet! 8 seconds! 🧲')}else if(t.type==='butterfly'){data.butterflyCount=Math.min(MAX_BUTTERFLIES,data.butterflyCount+1);butterflyRescued=true;data.butterfly=true;toast(`Butterfly friend! 🦋 ${data.butterflyCount}/${MAX_BUTTERFLIES}`)}else if(t.type==='heart'){
       const max=modes[difficulty].hearts;if(lives<max){lives++;toast('Beni found a heart! +1 health 💖')}else{data.coins++;toast('Full health! +1 coin 💖')}
     }else if(t.type==='rainbow'){
       flightFrames=300;beni.y=235;beni.vy=0;toast('Rainbow flight! Beni is safe for 5 seconds! 🌈')

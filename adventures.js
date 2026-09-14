@@ -13,6 +13,7 @@ const gardenItems=[
   {id:'house',name:'Friends’ cottage',icon:'🏡',price:40}
 ];
 const giftIcons=['🎀','🌼','🧣','👑','🦋','🌷','🎩','🍓','🌙','⭐','🐚','🌵','❄️','🌻','🏮','🍄','🪸','🎵','🎈','🏰'];
+const MAX_BUTTERFLIES=20;
 let magnetFrames=0,butterflyRescued=false,spawnCount=0,cleanCookies=0,runCookies=0,missionDone=false,missionReward=0;
 const missions=[
   {name:'Collect 10 cookies without a cloud hit',goal:10,value:()=>cleanCookies},
@@ -23,7 +24,8 @@ function initAdventures(){
   data.cleared=Array.isArray(data.cleared)?data.cleared:[];
   data.garden=Array.isArray(data.garden)?data.garden:Array(6).fill(null);
   data.garden=data.garden.slice(0,6);while(data.garden.length<6)data.garden.push(null);
-  data.butterfly=!!data.butterfly;
+  data.butterflyCount=Number.isFinite(data.butterflyCount)?Math.max(0,Math.min(MAX_BUTTERFLIES,Math.floor(data.butterflyCount))):(data.butterfly?1:0);
+  data.butterfly=data.butterflyCount>0;
   data.activeGift=data.activeGift||null;
   levels.forEach((l,i)=>shop.push({id:'gift'+(i+1),name:l.name+' Ribbon',icon:giftIcons[i],price:0,type:'gift',level:i+1}));
 }
@@ -36,7 +38,7 @@ function updateAdventures(){
   const m=currentMission();
   if(!missionDone&&m.value()>=m.goal){missionDone=true;missionReward=5;data.coins+=5;toast('Mission complete! +5 coins ✨')}
   $('#missionProgress').textContent=missionDone?'✓ Mission complete · +5 coins':`${m.name} · ${Math.min(m.goal,m.value())}/${m.goal}`;
-  $('#powerStatus').textContent=magnetFrames>0?`🧲 ${Math.ceil(magnetFrames/60)}s`:butterflyRescued?'🦋 Flying with Beni!':'🦋 Rescue a butterfly';
+  $('#powerStatus').textContent=magnetFrames>0?`🧲 ${Math.ceil(magnetFrames/60)}s`:butterflyRescued?`🦋 ${data.butterflyCount}/${MAX_BUTTERFLIES} flying with Beni!`:'🦋 Rescue a butterfly';
 }
 function renderAdventures(){
   const garden=$('#gardenPlots');garden.innerHTML='';
@@ -54,13 +56,13 @@ function renderAdventures(){
   };store.append(b)});
   const friends=$('#animalFriends');friends.innerHTML='';
   animalFriends.forEach((f,i)=>{const el=document.createElement('span');const unlocked=data.cleared.length>=i;el.textContent=unlocked?`${f.icon} ${f.name}`:`🔒 Clear ${i} levels`;friends.append(el)});
-  $('#butterflyHome').textContent=data.butterfly?'🦋 Your rescued butterfly visits the garden!':'🦋 Find a butterfly on the trail and bring a friend home.';
+  $('#butterflyHome').textContent=data.butterfly?`🦋 Butterfly friends: ${data.butterflyCount}/${MAX_BUTTERFLIES}!`:'🦋 Find a butterfly on the trail and bring a friend home.';
   const equipped=shop.find(i=>i.id===data.activeGift);if(equipped)$('#hat').textContent=equipped.icon;
 }
 function finishAdventures(){
   const first=!data.cleared.includes(runLevel);
   if(first){data.cleared.push(runLevel);const id='gift'+runLevel;if(!data.owned.includes(id))data.owned.push(id)}
-  $('#runReward').textContent=[first?`🎁 New gift: ${levels[runLevel-1].name} Ribbon! Find it in Beni’s Boutique.`:'Welcome back! Your friends are cheering for you.',missionDone?'✨ Mission reward: +5 coins.':'',butterflyRescued?'🦋 You rescued a butterfly!':''].filter(Boolean).join(' ');
+  $('#runReward').textContent=[first?`🎁 New gift: ${levels[runLevel-1].name} Ribbon! Find it in Beni’s Boutique.`:'Welcome back! Your friends are cheering for you.',missionDone?'✨ Mission reward: +5 coins.':'',butterflyRescued?`🦋 Butterfly friends: ${data.butterflyCount}/${MAX_BUTTERFLIES}!`:''].filter(Boolean).join(' ');
   const row=$('#partyFriends');row.innerHTML='';
   animalFriends.slice(0,Math.min(animalFriends.length,data.cleared.length+1)).forEach(f=>{const el=document.createElement('span');el.textContent=f.icon;el.title=f.name;row.append(el)});
   $('#party').classList.remove('hidden');
@@ -74,7 +76,7 @@ function drawButterfly(x,y,colors,phase){
 }
 function drawCompanions(){
   ctx.save();ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.shadowColor='#756684';ctx.shadowBlur=2;ctx.textAlign='center';ctx.textBaseline='middle';
-  if(butterflyRescued){const colors=[['#f2d8e7','#f8e8f0'],['#d7e7f4','#e9f2fa'],['#dcefdc','#eef8e9']];const spots=[[-18,-58,0],[-2,-72,2.1],[15,-54,4.2]];spots.forEach(([dx,dy,phase],i)=>drawButterfly(beni.x+dx,beni.y+dy+Math.sin(frame/15+phase)*6,colors[i],phase))}
+  if(butterflyRescued){const colors=[['#f2d8e7','#f8e8f0'],['#d7e7f4','#e9f2fa'],['#dcefdc','#eef8e9']];for(let i=0;i<data.butterflyCount;i++){const dx=-12+(i%5)*18,dy=-58-Math.floor(i/5)*17,phase=i*2.1;drawButterfly(beni.x+dx,beni.y+dy+Math.sin(frame/15+phase)*6,colors[i%colors.length],phase)}}
   if(magnetFrames>0){ctx.strokeStyle='#df8bba';ctx.lineWidth=2;ctx.setLineDash([6,7]);ctx.beginPath();ctx.arc(beni.x+34,beni.y-6,72,0,Math.PI*2);ctx.stroke();ctx.setLineDash([])}
   if(data.activeGift){const gift=shop.find(i=>i.id===data.activeGift);if(gift){ctx.font='24px "Apple Color Emoji",sans-serif';ctx.fillText(gift.icon,beni.x+34,beni.y-49)}}
   ctx.restore();
