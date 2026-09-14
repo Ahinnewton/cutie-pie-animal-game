@@ -34,6 +34,18 @@ const levels=[
   {"goal":1750,"name":"Bubble Sky","sky":"#c4def7","ground":"#bbaee3","far":"#978ac7","accent":"#f8ecff","motif":"🫧","landmark":"🎈"},
   {"goal":1800,"name":"Royal Cookie Castle","sky":"#f1d7a5","ground":"#cda6b8","far":"#a786af","accent":"#fff5d3","motif":"🍪","landmark":"🏰"}
 ];
+// The trail follows spring, summer, autumn, then winter. Scene ids preserve
+// the original artwork while the three seasonal showcases use custom scenery.
+const originalLevels=levels.map((level,i)=>({...level,scene:i+1}));
+const course=(scene,name,goal)=>scene==='autumn'||scene==='winter'||scene==='christmas'
+  ?{goal,name,scene}:{...originalLevels[scene-1],goal,name:name||originalLevels[scene-1].name};
+levels.splice(0,levels.length,
+  course(1,null,360),course(8,null,500),course(3,null,630),course(6,null,770),course(5,null,900),
+  course(2,null,990),course(7,null,1060),course(11,null,1130),course(12,null,1200),course(14,null,1270),course(17,null,1340),
+  course('autumn','Falling Leaf Forest',1410),course(16,null,1480),course(15,null,1550),course(18,null,1620),course(10,null,1690),
+  course(9,null,1750),course(13,null,1800),course('winter','Snowy Cuddle Wonderland',1850),course('christmas','Christmas Cookie Village',1900),course(19,null,1950),course(20,null,2000)
+);
+migrateSeasonLevels();
 data.unlocked=Math.min(levels.length,Math.max(1,data.unlocked||1));
 const shop=[{id:'nooutfit',icon:'✕',name:'No Outfit',price:0,type:'outfit'},{id:'nohat',icon:'✕',name:'No Hat',price:0,type:'hat'},{id:'bow',icon:'🎀',name:'Pink Bow',price:8,type:'hat'},{id:'crown',icon:'👑',name:'Crown',price:18,type:'hat'},{id:'cap',icon:'🧢',name:'Cool Cap',price:15,type:'hat'},{id:'scarf',icon:'🧣',name:'Scarf',price:12,type:'outfit'},{id:'vest',icon:'🦺',name:'Adventure',price:25,type:'outfit'},{id:'blue',icon:'🩵',name:'Blue Room',price:20,type:'room'},{id:'space',icon:'🚀',name:'Space Room',price:35,type:'room'},{id:'teddy',icon:'🧸',name:'Teddy Decor',price:10,type:'decor'}];
 initAdventures();
@@ -49,7 +61,7 @@ setInterval(()=>{data.hunger=Math.max(10,data.hunger-1);data.clean=Math.max(10,d
 function stopRun(){$('#party').classList.add('hidden');$('#runReward').textContent='';if(running){running=false;cancelAnimationFrame(raf);data.happy=Math.min(100,data.happy+Math.min(20,bones));save()}$('#runOverlay').classList.remove('hidden');runResult=null;$('#runOverlay h2').textContent='Ready for the trail?';$('#startRun').textContent='Start level';showGoal()}
 function tab(run){if(!run)stopRun();$('#homeScene').classList.toggle('hidden',run);$('#runScene').classList.toggle('hidden',!run);$('#homeTab').classList.toggle('active',!run);$('#runTab').classList.toggle('active',run)}$('#homeTab').onclick=()=>tab(false);$('#runTab').onclick=()=>tab(true);$('#leaveRun').onclick=()=>tab(false);$('#homeHint').onclick=()=>tab(false);
 function resetRun(){resetAdventures();runResult=null;toast.lastRunMessage=0;clearTimeout(toast.t);$('#toast').classList.remove('show');difficulty=$('#difficulty').value;runLevel=Number($('#courseLevel').value);const m=modes[difficulty];frame=0;speed=trailSpeed(m,runLevel,0);distance=0;bones=0;combo=0;keys=0;treasures=0;flightFrames=0;bossHP=6;cloudHits=0;lives=m.hearts;things=[];ducking=false;paused=false;$('#pauseRun').textContent='PAUSE';beni={x:105,y:330,vy:0,ground:true,jumps:0};updateHud()}
-function updateHud(){updateAdventures();$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',runLevel!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent=`♥ ${lives} / ${max}`;$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
+function updateHud(){updateAdventures();$('#distance').textContent=Math.floor(distance);$('#runLevel').textContent=runLevel;$('#bones').textContent=bones;$('#combo').textContent=combo;$('#keys').textContent=keys;$('#treasures').textContent=treasures;$('#cloudHits').textContent=cloudHits;$('#bossHealth').textContent=bossHP;$('#bossStatus').classList.toggle('hidden',levels[runLevel-1]?.scene!==10);const max=modes[difficulty]?.hearts||3;$('#lives').textContent=`♥ ${lives} / ${max}`;$('#trailProgress').style.width=Math.min(100,distance/(levels[runLevel-1]?.goal||1)*100)+'%'}
 function jump(){if(!running||paused||beni.jumps>=2)return;beni.vy=-22;beni.ground=false;beni.jumps++}function duck(on=true){if(running&&!paused)ducking=on}
 function spawnThing(){
   const gap=Math.max(160,modes[difficulty].max*TRAIL_SPEED_SCALE*42);
@@ -69,10 +81,11 @@ function spawnThing(){
   // Both heights hit standing Beni. Low clouds require jumping;
   // head-height clouds leave room beneath them for ducking.
   const y=type==='cloud'?(Math.random()<.6?326+Math.random()*8:288+Math.random()*8):type==='butterfly'?270:235+Math.random()*65;
-  things.push({type,x:930,y,w,h,hit:false});
+  const butterflyColor=type==='butterfly'?(data.butterflyCount+things.filter(t=>t.type==='butterfly'&&!t.hit).length)%BUTTERFLY_COLORS.length:0;
+  things.push({type,x:930,y,w,h,hit:false,butterflyColor});
 }
 function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function drawThing(t){ctx.save();ctx.translate(t.x,t.y);ctx.globalAlpha=1;ctx.fillStyle='#ffffff';ctx.shadowColor='#26334d';ctx.shadowBlur=3;ctx.shadowOffsetY=1;ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='butterfly')ctx.fillText('🦋',20,20);else if(t.type==='magnet')ctx.fillText('🧲',20,20);else if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
+function drawThing(t){if(t.type==='butterfly'){ctx.save();ctx.shadowColor='#806f84';ctx.shadowBlur=4;ctx.translate(t.x+20,t.y+20);ctx.scale(2.25,2.25);drawButterfly(0,0,BUTTERFLY_COLORS[t.butterflyColor%BUTTERFLY_COLORS.length],t.butterflyColor*.7);ctx.restore();return}ctx.save();ctx.translate(t.x,t.y);ctx.globalAlpha=1;ctx.fillStyle='#ffffff';ctx.shadowColor='#26334d';ctx.shadowBlur=3;ctx.shadowOffsetY=1;ctx.font='44px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';if(t.type==='magnet')ctx.fillText('🧲',20,20);else if(t.type==='cookie')ctx.fillText('🍪',18,18);else if(t.type==='golden')ctx.fillText('🌟',20,20);else if(t.type==='heart')ctx.fillText('💖',19,19);else if(t.type==='rainbow')ctx.fillText('🌈',22,22);else if(t.type==='key')ctx.fillText('🗝️',20,20);else if(t.type==='cloud'){ctx.font='48px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.fillText('☁️',27,24)}ctx.restore()}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
 function cloud(x,y,s=1){ctx.fillStyle='#fffdf1';ctx.beginPath();ctx.arc(x,y,17*s,0,Math.PI*2);ctx.arc(x+22*s,y-9*s,23*s,0,Math.PI*2);ctx.arc(x+48*s,y,18*s,0,Math.PI*2);ctx.fill();ctx.fillRect(x,y,48*s,18*s)}
 function flower(x,y,color){ctx.strokeStyle='#56874f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+24);ctx.stroke();for(let a=0;a<6;a++)circle(x+Math.cos(a*Math.PI/3)*7,y+Math.sin(a*Math.PI/3)*7,5,color);circle(x,y,4,'#ffe77a')}
@@ -144,7 +157,9 @@ function sceneryMotif(n,x,y,variant){
 }
 function drawBackground(){
   ctx.save();ctx.globalAlpha=1;
-  const n=runLevel,sky=pastelSkies[n-1],t=levels[n-1];
+  const t=levels[runLevel-1],n=t.scene,sky=pastelSkies[n-1];
+  if(n==='autumn'){drawAutumnBackground();ctx.restore();return}
+  if(n==='christmas'||n==='winter'){drawHolidayBackground(n);ctx.restore();return}
   const meadow=['#d6e9cc','#f0d7e2','#cfe7d9','#ddd9ef'][n%4];
   const wash=ctx.createLinearGradient(0,0,0,368);wash.addColorStop(0,sky);wash.addColorStop(1,'#fff5e7');ctx.fillStyle=wash;ctx.fillRect(0,0,900,430);
   // Soft sky details and broad rolling land make a continuous landscape.
@@ -178,12 +193,12 @@ function drawBackground(){
     ctx.save();ctx.translate(x,y);ctx.scale(.38,.38);sceneryLine([[0,0],[0,20]],'#9cbd9b',3);sceneryFlower(0,0,['#efb7cd','#c9bce6','#f1d694'][i%3]);ctx.restore();
   }
   for(let x=52;x<900;x+=124)sceneryOval(x,386,9,2,'#fff9ee');
-  ctx.fillStyle='#82778e';ctx.font='11px system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('BENI’S LITTLE WORLD  /  '+String(n).padStart(2,'0'),22,25);
+  ctx.fillStyle='#82778e';ctx.font='11px system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('BENI’S LITTLE WORLD  /  '+String(runLevel).padStart(2,'0'),22,25);
   ctx.font='18px system-ui,sans-serif';ctx.fillText(t.name,22,48);
   ctx.restore();
 }
 function drawBoss(){
-  if(runLevel!==10)return;ctx.save();ctx.translate(785,105);
+  if(levels[runLevel-1].scene!==10)return;ctx.save();ctx.translate(785,105);
   ctx.fillStyle='rgba(55,45,80,.22)';ctx.beginPath();ctx.ellipse(0,50,70,18,0,0,Math.PI*2);ctx.fill();
   circle(-34,24,30,'#d8d3e8');circle(0,8,43,'#eeeaf5');circle(40,25,31,'#d8d3e8');ctx.fillStyle='#d8d3e8';ctx.fillRect(-35,20,76,35);
   ctx.font='42px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.fillText('👑',3,-34);
@@ -220,7 +235,7 @@ function updateRun(){
     if(t.type==='cloud'&&flightFrames>0){toast('Rainbow shield! Cloud blocked! 🌈');return}
     if(t.type==='cookie'||t.type==='golden'){
       const prize=t.type==='golden'?3:1;bones+=prize;runCookies+=prize;cleanCookies+=prize;data.coins+=prize;combo++;
-      if(t.type==='golden'&&runLevel===10&&bossHP>0){bossHP--;toast(`Star hit! Cloud King has ${bossHP} power left! 👑`)}
+      if(t.type==='golden'&&cfg.scene===10&&bossHP>0){bossHP--;toast(`Star hit! Cloud King has ${bossHP} power left! 👑`)}
       else if(combo%5===0){data.coins+=2;toast(`${combo} cookie combo! +2 bonus coins! ✨`)}else if(t.type==='golden')toast('Golden cookie: +3 coins')
     }else if(t.type==='magnet'){magnetFrames=480;toast('Cookie magnet! 8 seconds! 🧲')}else if(t.type==='butterfly'){data.butterflyCount=Math.min(MAX_BUTTERFLIES,data.butterflyCount+1);butterflyRescued=true;data.butterfly=true;toast(`Butterfly friend! 🦋 ${data.butterflyCount}/${MAX_BUTTERFLIES}`)}else if(t.type==='heart'){
       const max=modes[difficulty].hearts;if(lives<max){lives++;toast('Beni found a heart! +1 health 💖')}else{data.coins++;toast('Full health! +1 coin 💖')}

@@ -1,3 +1,21 @@
+// Upgrade numbered course rewards once, preserving existing progress and outfits.
+function migrateSeasonLevels(){
+  if(data.courseVersion>=3)return;
+  // v1 was the original 20-course order. v2 briefly inserted Christmas at 11
+  // and winter at 21. Match rewards to their scenery when moving to season order.
+  const oldScenes=data.courseVersion===2
+    ?[1,2,3,4,5,6,7,8,9,10,'christmas',11,12,13,14,15,16,17,18,19,'winter',20]
+    :[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+  const newScenes=[1,8,3,6,5,2,7,11,12,14,17,'autumn',16,15,18,10,9,13,'winter','christmas',19,20];
+  const move=n=>{const scene=oldScenes[Number(n)-1];const found=newScenes.indexOf(scene);return found<0?null:found+1};
+  const oldUnlocked=Math.max(1,Number(data.unlocked)||1);
+  data.unlocked=oldUnlocked>=oldScenes.length?newScenes.length:Math.min(newScenes.length,oldUnlocked);
+  data.cleared=(Array.isArray(data.cleared)?data.cleared:[]).map(move).filter(Boolean);
+  const moveGift=id=>{if(typeof id!=='string'||!/^gift\d+$/.test(id))return id;const n=move(id.slice(4));return n?'gift'+n:null};
+  data.owned=(Array.isArray(data.owned)?data.owned:[]).map(moveGift).filter(Boolean);
+  data.activeGift=moveGift(data.activeGift);
+  data.courseVersion=3;
+}
 // Little adventures share the existing save and coin balance.
 const animalFriends=[
   {name:'Pip the bunny',icon:'🐰'}, {name:'Mochi the kitten',icon:'🐱'},
@@ -12,8 +30,11 @@ const gardenItems=[
   {id:'swing',name:'Little swing',icon:'🎠',price:30},
   {id:'house',name:'Friends’ cottage',icon:'🏡',price:40}
 ];
-const giftIcons=['🎀','🌼','🧣','👑','🦋','🌷','🎩','🍓','🌙','⭐','🐚','🌵','❄️','🌻','🏮','🍄','🪸','🎵','🎈','🏰'];
+const giftIcons=['🌼','🌸','🌿','⭐','🌈','🍬','💎','🐚','🌵','🌻','🪸','🍁','🍄','🏮','🕰️','🌙','✨','❄️','☃️','🎄','🎈','🏰'];
 const MAX_BUTTERFLIES=20;
+// Twenty distinct soft colors sampled from the user's pastel reference palette.
+const BUTTERFLY_PALETTE=['#ABDEE6','#CBAACB','#FFFFB5','#FFCCB6','#F3B0C3','#C6DBDA','#FEE1E8','#FED7C3','#F6EAC2','#ECD5E3','#FFC5BF','#FF968A','#FFAEA5','#FFDDBE','#FFC8A2','#8FCACA','#CCE2CB','#B6CFB6','#97C1A9','#A2E1DB'];
+const BUTTERFLY_COLORS=BUTTERFLY_PALETTE.map((color,i)=>[color,i%2?'#FFF4E8':'#FFFFFF']);
 let magnetFrames=0,butterflyRescued=false,spawnCount=0,cleanCookies=0,runCookies=0,missionDone=false,missionReward=0;
 const missions=[
   {name:'Collect 10 cookies without a cloud hit',goal:10,value:()=>cleanCookies},
@@ -76,7 +97,7 @@ function drawButterfly(x,y,colors,phase){
 }
 function drawCompanions(){
   ctx.save();ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.shadowColor='#756684';ctx.shadowBlur=2;ctx.textAlign='center';ctx.textBaseline='middle';
-  if(butterflyRescued){const colors=[['#f2d8e7','#f8e8f0'],['#d7e7f4','#e9f2fa'],['#dcefdc','#eef8e9']];for(let i=0;i<data.butterflyCount;i++){const dx=-12+(i%5)*18,dy=-58-Math.floor(i/5)*17,phase=i*2.1;drawButterfly(beni.x+dx,beni.y+dy+Math.sin(frame/15+phase)*6,colors[i%colors.length],phase)}}
+  if(butterflyRescued){for(let i=0;i<data.butterflyCount;i++){const dx=-12+(i%5)*18,dy=-58-Math.floor(i/5)*17,phase=i*2.1;drawButterfly(beni.x+dx,beni.y+dy+Math.sin(frame/15+phase)*6,BUTTERFLY_COLORS[i%BUTTERFLY_COLORS.length],phase)}}
   if(magnetFrames>0){ctx.strokeStyle='#df8bba';ctx.lineWidth=2;ctx.setLineDash([6,7]);ctx.beginPath();ctx.arc(beni.x+34,beni.y-6,72,0,Math.PI*2);ctx.stroke();ctx.setLineDash([])}
   if(data.activeGift){const gift=shop.find(i=>i.id===data.activeGift);if(gift){ctx.font='24px "Apple Color Emoji",sans-serif';ctx.fillText(gift.icon,beni.x+34,beni.y-49)}}
   ctx.restore();
